@@ -7,7 +7,7 @@ This block storage plug-in (driver) for Flocker enables the following IBM storag
    - XIV
 - IBM FlashSystem V9000
 
-It is certified for Flocker 1.15.0, Docker 12, RHEL 7.2 and IBM Spectrum Control Base Edition 3.2.0 Beta. The  plug-in supports iSCSI and Fibre Channel connectivity to the storage systems.
+It is certified for Flocker 1.15.0, Docker 12, RHEL 7.2 and IBM Spectrum Control Base Edition 3.2.0 Beta. 
 
 ## Overview
 
@@ -16,25 +16,30 @@ Typically, Docker data volumes are tied to a single server. However, when Flocke
 
 ## Prerequisites
 The following components are required before using the plug-in:
+
 1. Install Flocker.
 2. Install and configure Beta release of IBM Spectrum Control Base Edition 3.2.0.
-3. Configure storage connectivity (iSCSI or FC) and multipathing.
+3. Configure storage connectivity and multipathing.
 
 **1. Install Flocker**
-See the instructions on how to install Flocker on your nodes at [Flocker](https://clusterhq.com/flocker/getting-started).
+
+See the instructions on how to install Flocker on your nodes at [Flocker](https://flocker.readthedocs.io/en/latest/).
 
 **2. Installing and configuring IBM Spectrum Control Base Edition**
+
 The IBM Storage plug-in for Flocker communicates with the IBM storage systems through IBM Spectrum Control Base Edition 3.2.0 Beta (the GA version will be available soon).
-To participate in the IBM Spectrum Control Base Edition 3.2.0 Beta program, send email to bshay@il.ibm.com or contact your IBM representative.
-See [IBM Knowledge Center](http://www.ibm.com/support/knowledgecenter/STWMS9/landing/IBM_Spectrum_Control_Base_Edition_welcome_page.html) for general instructions on how install and configure Spectrum Control Base Edition software.
+
+To participate in the IBM Spectrum Control Base Edition 3.2.0 Beta program, send email to bshay@il.ibm.com or contact your IBM representative. See [IBM Knowledge Center](http://www.ibm.com/support/knowledgecenter/STWMS9/landing/IBM_Spectrum_Control_Base_Edition_welcome_page.html) for general instructions on how install and configure Spectrum Control Base Edition software.
+
 After IBM Spectrum Control Base Edition is installed, do the following :
-1. Log into Spectrum Control Base Edition server at https://SCBE_IP_address:8440.
-1. Add a Flocker interface. Note: The Flocker interface username and the password will be used later, when creating and editing the agent.yml file.
-2. Add the IBM storage systems to be used with the Flocker plug-in.
-3. Create a single or multiple services with required storage capacities and capabilities.
-3. Delegate at least one storage service to the Flocker interface.
+* Log into Spectrum Control Base Edition server at https://SCBE_IP_address:8440.
+* Add a Flocker interface. Note: The Flocker interface username and the password will be used later, when creating and editing the agent.yml file.
+* Add the IBM storage systems to be used with the Flocker plug-in.
+* Create a single or multiple services with required storage capacities and capabilities.
+* Delegate at least one storage service to the Flocker interface.
 
 **3. Configuring storage connectivity and multipathing**
+
 The plug-in supports FC or iSCSI connectivity to the storage systems.
 - Install OpeniSCSI and SCSI utilities.
     * Ubuntu
@@ -72,12 +77,16 @@ The plug-in supports FC or iSCSI connectivity to the storage systems.
 
 - For iSCSI - Discover and login to the iSCSI targets of the relevant storage systems:
     * Discover iSCSI targets of the storage systems portal on the host
-        ```bash
-        iscsiadm -m discoverydb -t st -p ${Storage System iSCSI Portal IP}:3260 --discover
-        ```
-    * Log in to iSCSI ports. You must define at least two iSCSI ports per storage system to achieve multipathing.
+    
        ```bash
-        iscsiadm -m node  -p ${storage system iSCSI portal IP/hostname} --login```
+          iscsiadm -m discoverydb -t st -p ${Storage System iSCSI Portal IP}:3260 --discover
+       ```
+    * Log in to iSCSI ports. You must define at least two iSCSI ports per storage system to achieve multipathing.
+    
+       ```bash
+          iscsiadm -m node  -p ${storage system iSCSI portal IP/hostname} --login
+       ```
+
 ## Installation
 Install IBM Storage Plug-in for Flocker on each node of the Flocker cluster.
 
@@ -87,7 +96,7 @@ Install IBM Storage Plug-in for Flocker on each node of the Flocker cluster.
 
 ## Usage instructions
 Create and edit the agent.yml file in /etc/flocker directory as follows:
-```
+```bash
 version: 1
 control-service:
    hostname: "FLOCKER_CONTROL_NODE"
@@ -101,13 +110,13 @@ dataset:
   default_service: "SERVICE"
 ```
 Replace the following values, according your environment:
-- FLOCKER_CONTROL_NODE = hostname or IP of the Flocker control node
-- SCBE_IP = hostname or IP of IBM Spectrum Control Base Edition (SCBE)
-- SCBE_PORT = Optional (default port is 8440)
-- Boolean = True verifies SCB SSL certificate or False ignores the certificate (default is True)
-- USERNAME = user name defined for SCBE Flocker interface
-- PASSWORD = password defined for SCBE Flocker interface
-- SERVICE = SCBE storage service to be used by default as the Flocker default profile
+- **FLOCKER_CONTROL_NODE** = hostname or IP of the Flocker control node
+- **SCBE_IP** = hostname or IP of IBM Spectrum Control Base Edition (SCBE)
+- **SCBE_PORT** = Optional (default port is 8440)
+- **Boolean** = True verifies SCB SSL certificate or False ignores the certificate (default is True)
+- **USERNAME** = user name defined for SCBE Flocker interface
+- **PASSWORD** = password defined for SCBE Flocker interface
+- **SERVICE** = SCBE storage service to be used by default as the Flocker default profile
 
 ## Running tests
 - To verify the plug-in installation, set up the configuration file, as explained below. Change the values according to your environment.
@@ -128,7 +137,7 @@ Replace the following values, according your environment:
     ```bash
     sudo /opt/flocker/bin/trial  test_ibm_storage_flocker_driver
     ```
-    Make sure that all tests succeed and no error messages are generated.
+    
 
 ## Future
 - Support for additional IBM Spectrum Virtualize Family products:
