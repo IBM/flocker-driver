@@ -1,0 +1,13 @@
+version: 1
+control-service:
+  hostname: "control-service"
+dataset:
+  backend: "ibm_storage_flocker_driver"
+  management_ip: "SCBE IP" # IP address or hostname of IBM Spectrum Control Base Edition(SCBE)
+  management_port: 8440
+  verify_ssl_certificate: True
+  username: "USERNAME" # SCBE Flocker interface user
+  password: "PASSWORD" # SCBE Flocker interface password
+  default_service: "SERVICE" # Default SCBE storage service
+  logger_level: "DEBUG"
+

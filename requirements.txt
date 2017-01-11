@@ -1,0 +1,5 @@
+eliot
+Twisted
+zope.interface
+bitmath
+requests
