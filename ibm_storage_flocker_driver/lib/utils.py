@@ -18,6 +18,7 @@ import logging
 from functools import wraps
 from eliot import Message
 from ibm_storage_flocker_driver.lib import messages
+from ibm_storage_flocker_driver.lib.constants import DEFAULT_DEBUG_LEVEL
 
 def logme(logger, prefix=None, level=logging.DEBUG):
     """
@@ -75,7 +76,7 @@ def config_logger(log):
     :param log:
     :return log:
     """
-    log.setLevel(logging.DEBUG)
+    log.setLevel(DEFAULT_DEBUG_LEVEL)
     log.addHandler(IBMStorageDriverLogHandler())
     log.propagate = False
     return log

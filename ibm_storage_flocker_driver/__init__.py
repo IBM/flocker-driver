@@ -17,8 +17,8 @@
 from flocker.node import BackendDescription, DeployerType
 from ibm_storage_blockdevice import (
     get_ibm_storage_backend_by_conf,
-    MANDATORY_CONFIGURATIONS_IN_YML_FILE,
 )
+from lib.constants import MANDATORY_CONFIGURATIONS_IN_YML_FILE
 
 
 def api_factory(cluster_id, **kwargs):

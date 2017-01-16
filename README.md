@@ -108,6 +108,7 @@ dataset:
   username: "USERNAME"
   password: "PASSWORD"
   default_service: "SERVICE"
+  debug_level: "LEVEL"
 ```
 Replace the following values, according your environment:
 - **FLOCKER_CONTROL_NODE** = hostname or IP of the Flocker control node
@@ -117,6 +118,7 @@ Replace the following values, according your environment:
 - **USERNAME** = user name defined for SCBE Flocker interface
 - **PASSWORD** = password defined for SCBE Flocker interface
 - **SERVICE** = SCBE storage service to be used by default as the Flocker default profile
+- **LEVEL** = Optional (Default is INFO. For debug mode uses DEBUG)
 
 ## Running tests
 - To verify the plug-in installation, set up the configuration file, as explained below. Change the values according to your environment.

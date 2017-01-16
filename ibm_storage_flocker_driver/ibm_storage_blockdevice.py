@@ -36,46 +36,23 @@ from ibm_storage_flocker_driver.lib.abstract_client import (
     FactoryBackendAPIClient,
 )
 from ibm_storage_flocker_driver.lib.utils import logme, config_logger
-
-
-LOG = config_logger(logging.getLogger(__name__))
-
-# Constants related to volume name and dataset id
-VOL_NAME_FLOCKER_PREFIX = 'f_'
-VOL_NAME_DELIMITER_CLUSTER_HASHED = '_'
-NUM_CHARS_IN_UUID = 36
-START_CLUSTER_HASHED_INDEX = (
-    len(VOL_NAME_FLOCKER_PREFIX) +
-    NUM_CHARS_IN_UUID +
-    len(VOL_NAME_DELIMITER_CLUSTER_HASHED)
-)
-DATASET_ID_NUM_CHARS = NUM_CHARS_IN_UUID  # based on UUID
-VOL_NAME_FLOCKER_PREFIX_LEN = len(VOL_NAME_FLOCKER_PREFIX)
-END_INDEX_DATASET_ID_IN_VOL_NAME = (
-    DATASET_ID_NUM_CHARS + VOL_NAME_FLOCKER_PREFIX_LEN
-)
-
-# Constants related to YML file parameters and defaults
-DEFAULT_DEBUG_LEVEL = 'DEBUG'
-DEFAULT_SERVICE = '-DEFAULT-'
-DEFAULT_VERIFY_SSL = True
-MANDATORY_CONFIGURATIONS_IN_YML_FILE = {
-    u"username",
-    u"password",
-    u"management_ip",
-    u"default_service"
-}
-CONF_PARAM_PORT = u"management_port"
-CONF_PARAM_DEBUG = u"logger_level"
-CONF_PARAM_BACKEND_TYPE = u"management_type"
-CONF_PARAM_VERIFY_SSL = u"verify_ssl_certificate"
-OPTIONAL_CONFIGURATIONS_IN_YML_FILE = {
+from ibm_storage_flocker_driver.lib.constants import (
     CONF_PARAM_BACKEND_TYPE,
     CONF_PARAM_DEBUG,
+    DEFAULT_DEBUG_LEVEL,
+    CONF_PARAM_DEBUG_OPTIONS,
     CONF_PARAM_VERIFY_SSL,
+    DEFAULT_VERIFY_SSL,
     CONF_PARAM_PORT,
-}
-CONF_PARAM_DEBUG_OPTIONS = ["DEBUG", "INFO", "ERROR"]
+    DEFAULT_SERVICE,
+    VOL_NAME_FLOCKER_PREFIX_LEN,
+    END_INDEX_DATASET_ID_IN_VOL_NAME,
+    START_CLUSTER_HASHED_INDEX,
+    VOL_NAME_FLOCKER_PREFIX,
+    VOL_NAME_DELIMITER_CLUSTER_HASHED,
+)
+
+LOG = config_logger(logging.getLogger(__name__))
 PREFIX = 'API'  # log prefix
 
 
@@ -90,6 +67,7 @@ def get_ibm_storage_backend_by_conf(cluster_id, conf_dict):
     connection_info = get_connection_info_from_conf(conf_dict)
     backend_type = conf_dict.get(CONF_PARAM_BACKEND_TYPE, messages.SCBE_STRING)
     client = FactoryBackendAPIClient.factory(connection_info, backend_type)
+    LOG.setLevel(connection_info.debug_level)
 
     # Verification
     default_resource = conf_dict[u"default_service"]
@@ -127,7 +105,7 @@ def get_connection_info_from_conf(conf_dict):
         conf_dict[u"password"],
         port=port,
         verify_ssl=verify_ssl,
-        debug=debug,
+        debug_level=debug,
     )
 
 
@@ -140,7 +118,6 @@ def verify_default_service_exists(default_service_name, client):
     :raises SCBENoServicesExist: if no services exist
     :return: None
     """
-
     if default_service_name == DEFAULT_SERVICE:
         scbe_services = client.list_service_names()
         if scbe_services:
@@ -298,7 +275,7 @@ class IBMStorageBlockDeviceAPI(object):
         self._storage_resource = storage_resource
         self._instance_id = self._get_host()
         self._cluster_id_slug = uuid2slug(self._cluster_id)
-        self._host_ops = HostActions()
+        self._host_ops = HostActions(backend_client.con_info.debug_level)
         self._is_multipathing = self._host_ops.is_multipath_active()
 
     @staticmethod

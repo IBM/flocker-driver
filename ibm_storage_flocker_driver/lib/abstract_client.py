@@ -29,7 +29,7 @@ class CreateVolumeError(ExceptionStorageClient):
 class ConnectionInfo(object):
 
     def __init__(self, management_ip, username, password, port=None,
-                 verify_ssl=None, debug=None):
+                 verify_ssl=None, debug_level=None):
         """
         This object holds connection information about the management system.
         :param management_ip:
@@ -41,7 +41,7 @@ class ConnectionInfo(object):
         self.management_ip = management_ip
         self.port = port
         self.verify_ssl = verify_ssl
-        self.debug_level = debug
+        self.debug_level = debug_level
         # TODO consider to support specific SSL certification path
         self.credential = dict(
             username=username,
@@ -77,9 +77,9 @@ class IBMStorageAbsClient(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def __init__(self, mng_info):
+    def __init__(self, con_info):
         """
-        :param mng_info:
+        :param con_info: ConnectionInfo
         """
         raise NotImplementedError
 

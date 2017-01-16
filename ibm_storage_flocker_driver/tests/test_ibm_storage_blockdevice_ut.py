@@ -37,6 +37,7 @@ from ibm_storage_flocker_driver.lib.abstract_client import (
     FactoryBackendAPIClient,
     IBMDriverNoClientModuleFound,
 )
+from ibm_storage_flocker_driver.lib.constants import DEFAULT_DEBUG_LEVEL
 
 # Constants for unit testing
 UUID1_STR = '737d4ea0-28bf-11e6-b12e-68f7288f1809'
@@ -74,10 +75,12 @@ IS_MULTIPATH_EXIST = 'ibm_storage_flocker_driver.lib.host_actions.' \
 LIST_VOLUMES = 'ibm_storage_flocker_driver.ibm_storage_blockdevice.' \
                'IBMStorageBlockDeviceAPI.list_volumes'
 
+CONF_INFO_MOCK = MagicMock()
+CONF_INFO_MOCK.debug_level = DEFAULT_DEBUG_LEVEL
 
-class TestBlockDevice(unittest.TestCase):
+class TestBlockDeviceBasicModuleFuncs(unittest.TestCase):
     """
-    Unit testing for IBMStorageBlockDeviceAPI Class
+    Unit testing for basic funcs of the module
     """
 
     def test_uuid2slug(self):
@@ -100,28 +103,6 @@ class TestBlockDevice(unittest.TestCase):
         volname = driver.build_vol_name(UUID1_STR, UUID1_SLUG)
         self.assertEqual(volname, VOL_NAME)
 
-    @patch(IS_MULTIPATH_EXIST)
-    def test_IBMStorageBlockDeviceAPI_init(self, check_output_mock):
-        check_output_mock.return_value = True
-        driver_obj = driver.IBMStorageBlockDeviceAPI(UUID1_STR, None,
-                                                     'fakepool')
-        self.assertEqual(driver_obj._client, None)
-        self.assertEqual(driver_obj._cluster_id, UUID1_STR)
-        self.assertEqual(driver_obj._storage_resource, 'fakepool')
-        self.assertEqual(driver_obj._instance_id, socket.gethostname())
-        self.assertEqual(driver_obj._cluster_id_slug, UUID1_SLUG)
-        self.assertEqual(driver_obj._is_multipathing, True)
-
-    @patch(IS_MULTIPATH_EXIST)
-    def test_IBMStorageBlockDeviceAPI_is_cluster_volume(
-            self, check_output_mock):
-        check_output_mock.return_value = True
-        driver_obj = driver.IBMStorageBlockDeviceAPI(UUID1_STR, None,
-                                                     'fakepool')
-        self.assertTrue(driver_obj._is_cluster_volume(VOL_NAME))
-        self.assertFalse(driver_obj._is_cluster_volume(
-            VOL_NAME_WITH_FAKE_CLUSTER_ID))
-
     def test_get_blockdevicevolume(self):
         size = int(GiB(16).to_Byte().value)
         blockdevicevol = driver._get_blockdevicevolume(
@@ -138,15 +119,46 @@ class TestBlockDevice(unittest.TestCase):
         )
         self.assertEqual(blockdevicevol, expacted_blockdevicevolume)
 
+
+class TestBlockDevice(unittest.TestCase):
+    """
+    Unit testing for IBMStorageBlockDeviceAPI Class
+    """
+
+    def setUp(self):
+        self.mock_client = MagicMock
+        self.mock_client.con_info = CONF_INFO_MOCK
+
+    @patch(IS_MULTIPATH_EXIST)
+    def test_IBMStorageBlockDeviceAPI_init(self, check_output_mock):
+        check_output_mock.return_value = True
+        driver_obj = driver.IBMStorageBlockDeviceAPI(
+            UUID1_STR, self.mock_client, 'fakepool')
+        self.assertEqual(driver_obj._client, self.mock_client)
+        self.assertEqual(driver_obj._cluster_id, UUID1_STR)
+        self.assertEqual(driver_obj._storage_resource, 'fakepool')
+        self.assertEqual(driver_obj._instance_id, socket.gethostname())
+        self.assertEqual(driver_obj._cluster_id_slug, UUID1_SLUG)
+        self.assertEqual(driver_obj._is_multipathing, True)
+
+    @patch(IS_MULTIPATH_EXIST)
+    def test_IBMStorageBlockDeviceAPI_is_cluster_volume(
+            self, check_output_mock):
+        check_output_mock.return_value = True
+        driver_obj = driver.IBMStorageBlockDeviceAPI(
+            UUID1_STR, self.mock_client, 'fakepool')
+        self.assertTrue(driver_obj._is_cluster_volume(VOL_NAME))
+        self.assertFalse(driver_obj._is_cluster_volume(
+            VOL_NAME_WITH_FAKE_CLUSTER_ID))
+
     @patch(IS_MULTIPATH_EXIST)
     def test_IBMStorageBlockDeviceAPI_get_volume(
             self, multipathing_mock):
         multipathing_mock.return_value = True
         fake_vol_list = [BDV1, BDV3]
-        client = MagicMock
-        client.list_volumes = MagicMock(return_value=fake_vol_list)
-        driver_obj = driver.IBMStorageBlockDeviceAPI(UUID1_STR, client,
-                                                     'fakepool')
+        self.mock_client.list_volumes = MagicMock(return_value=fake_vol_list)
+        driver_obj = driver.IBMStorageBlockDeviceAPI(
+            UUID1_STR, self.mock_client, 'fakepool')
 
         driver_obj._get_blockdevicevolume_by_vol = MagicMock(return_value=BDV1)
         self.assertTrue(driver_obj._get_volume(unicode(UUID1_STR)), BDV1)
@@ -154,7 +166,7 @@ class TestBlockDevice(unittest.TestCase):
         driver_obj._get_blockdevicevolume_by_vol = MagicMock(return_value=BDV3)
         self.assertTrue(driver_obj._get_volume(unicode(UUID3_STR)), BDV3)
 
-        client.list_volumes = MagicMock(return_value=[])
+        self.mock_client.list_volumes = MagicMock(return_value=[])
         self.assertRaises(UnknownVolume, driver_obj._get_volume,
                           unicode('fack-lockdevice-id'))
 
@@ -162,18 +174,18 @@ class TestBlockDevice(unittest.TestCase):
     def test_IBMStorageBlockDeviceAPI_volume_exist(self, multipathing_mock):
         multipathing_mock.return_value = True
         fake_vol_list = [BDV1, BDV3]
-        client = MagicMock
-        client.list_volumes = MagicMock(return_value=fake_vol_list)
 
-        driver_obj = driver.IBMStorageBlockDeviceAPI(UUID1_STR, client,
-                                                     'fakepool')
+        self.mock_client.list_volumes = MagicMock(return_value=fake_vol_list)
+        self.mock_client.con_info = CONF_INFO_MOCK
+        driver_obj = driver.IBMStorageBlockDeviceAPI(
+            UUID1_STR, self.mock_client, 'fakepool')
         driver_obj._get_blockdevicevolume_by_vol = MagicMock(return_value=BDV1)
         self.assertTrue(driver_obj._volume_exist(unicode(UUID1_STR)))
 
         driver_obj._get_blockdevicevolume_by_vol = MagicMock(return_value=BDV1)
         self.assertTrue(driver_obj._volume_exist(unicode(UUID3_STR)))
 
-        client.list_volumes = MagicMock(return_value=[])
+        self.mock_client.list_volumes = MagicMock(return_value=[])
         self.assertFalse(
             driver_obj._volume_exist(unicode('fack-lockdevice-id')))
 
@@ -187,13 +199,16 @@ class TestBlockDevice(unittest.TestCase):
         mock_vol_obj.name = 'volfack'
         mock_vol_obj.wwn = '11111111111'
 
-        mock_client = MagicMock
-        mock_client.list_volumes = MagicMock(return_value=[mock_vol_obj])
-        mock_client.create_volume = MagicMock
-        mock_client.handle_default_pool = MagicMock
-        mock_client.handle_default_profile = MagicMock(return_value='fakepool')
-        driver_obj = driver.IBMStorageBlockDeviceAPI(UUID1_STR, mock_client,
-                                                     'fakepool')
+        self.mock_client.list_volumes = MagicMock(
+            return_value=[mock_vol_obj])
+        self.mock_client.create_volume = MagicMock
+        self.mock_client.handle_default_pool = MagicMock
+        self.mock_client.handle_default_profile = MagicMock(
+            return_value='fakepool')
+        self.mock_client.con_info = CONF_INFO_MOCK
+
+        driver_obj = driver.IBMStorageBlockDeviceAPI(
+            UUID1_STR, self.mock_client, 'fakepool')
 
         bdv = driver_obj.create_volume(UUID(UUID1_STR),
                                        GiB(size).to_Byte().value)
@@ -211,7 +226,6 @@ class TestBlockDevice(unittest.TestCase):
     @patch('ibm_storage_flocker_driver.lib.host_actions.os.path.exists')
     def test_IBMStorageBlockDeviceAPI_get_device_path(
             self, ospathexist, multipathing_mock, check_output_mock):
-        size = 16
         multipathing_mock.return_value = True
         ospathexist.return_value = True
         check_output_mock.return_value = test_host_actions.MULTIPATH_OUTPUT2
@@ -222,23 +236,22 @@ class TestBlockDevice(unittest.TestCase):
             attached_to=u'fakehost',
             dataset_id=UUID(UUID1_STR),
         )
-        mock_client = MagicMock
-        driver_obj = driver.IBMStorageBlockDeviceAPI(UUID1_STR, mock_client,
-                                                     'fakepool')
+        driver_obj = driver.IBMStorageBlockDeviceAPI(
+            UUID1_STR, self.mock_client, 'fakepool')
 
         class VolInfoFake(object):
             name = 'fake_volname'
         driver_obj._get_volume_object = MagicMock(return_value=VolInfoFake())
         driver_obj._get_blockdevicevolume_by_vol = MagicMock(
             return_value=blockdevicevolume)
-        mock_client.system_type = 'XIV'
+        self.mock_client.system_type = 'XIV'
 
         class r_list():
 
             def __init__(self, wwn):
                 pass
             name = UUID1_STR
-        mock_client.list_volumes = MagicMock(return_value=[r_list])
+        self.mock_client.list_volumes = MagicMock(return_value=[r_list])
 
         dpath = driver_obj.get_device_path(blockdevicevolume.blockdevice_id)
         self.assertEqual(
@@ -262,9 +275,8 @@ class TestBlockDevice(unittest.TestCase):
             attached_to=u'fakehost',
             dataset_id=UUID(UUID1_STR),
         )
-        mock_client = MagicMock
         driver_obj = driver.IBMStorageBlockDeviceAPI(
-            UUID1_STR, mock_client, 'fakepool')
+            UUID1_STR, self.mock_client, 'fakepool')
 
         class VolInfoFake(object):
             name = 'fake_volname'
@@ -292,10 +304,9 @@ class TestBlockDevice(unittest.TestCase):
             def __init__(self, wwn):
                 pass
             name = UUID1_STR
-        mock_client = MagicMock
-        mock_client.list_volumes = MagicMock(return_value=[ResultList])
-        driver_obj = driver.IBMStorageBlockDeviceAPI(UUID1_STR, mock_client,
-                                                     'fakepool')
+        self.mock_client.list_volumes = MagicMock(return_value=[ResultList])
+        driver_obj = driver.IBMStorageBlockDeviceAPI(
+            UUID1_STR, self.mock_client, 'fakepool')
 
         class VolInfoFake(object):
             name = 'fake_volname'
@@ -322,10 +333,9 @@ class TestBlockDevice(unittest.TestCase):
             dataset_id=UUID(UUID1_STR),
         )
 
-        mock_client = MagicMock
-        mock_client.get_vol_mapping = MagicMock(return_value='fake_host')
+        self.mock_client.get_vol_mapping = MagicMock(return_value='fake_host')
         driver_obj = driver.IBMStorageBlockDeviceAPI(
-            FAKE_CLUSTER_ID, mock_client, 'fakepool')
+            FAKE_CLUSTER_ID, self.mock_client, 'fakepool')
         driver_obj._is_cluster_volume = MagicMock(return_value=False)
         self.assertRaises(
             driver.VolumeNotInFlockerCluster,
@@ -386,6 +396,9 @@ class TestBlockDeviceVolumeList(unittest.TestCase):
             return_value=self.get_vols_mapping_fake)
         mock_client.get_hosts = MagicMock(
             return_value=self.get_hosts_fake)
+
+        mock_client.con_info.debug_level = DEFAULT_DEBUG_LEVEL
+
         self.driver_obj = driver.IBMStorageBlockDeviceAPI(
             UUID1_STR, mock_client, 'fakepool')
 
@@ -464,7 +477,6 @@ class TestBlockDeviceVerifyDefaultService(unittest.TestCase):
         client = MagicMock
         client.list_service_names = MagicMock(return_value=[])
         client.con_info = Mock()
-
         self.assertRaises(
             driver.SCBENoServicesExist,
             driver.verify_default_service_exists,
@@ -493,6 +505,11 @@ class TestBlockDeviceVerifyDefaultService(unittest.TestCase):
             client,
         )
 
+patch_factory = "ibm_storage_flocker_driver.ibm_storage_blockdevice." \
+                "FactoryBackendAPIClient.factory"
+patch_exists = "ibm_storage_flocker_driver.ibm_storage_blockdevice." \
+               "verify_default_service_exists"
+
 
 class TestBlockDeviceConfigurationFile(unittest.TestCase):
     """
@@ -513,7 +530,7 @@ class TestBlockDeviceConfigurationFile(unittest.TestCase):
             conf_dict["password"],
             port=None,
             verify_ssl=driver.DEFAULT_VERIFY_SSL,
-            debug=driver.DEFAULT_DEBUG_LEVEL,
+            debug_level=driver.DEFAULT_DEBUG_LEVEL,
         )
         self.assertEqual(connection_info, expected)
 
@@ -532,7 +549,7 @@ class TestBlockDeviceConfigurationFile(unittest.TestCase):
             conf_dict["password"],
             port=conf_dict[driver.CONF_PARAM_PORT],
             verify_ssl=driver.DEFAULT_VERIFY_SSL,
-            debug=driver.DEFAULT_DEBUG_LEVEL,
+            debug_level=driver.DEFAULT_DEBUG_LEVEL,
         )
         self.assertEqual(connection_info, expected)
 
@@ -563,6 +580,26 @@ class TestBlockDeviceConfigurationFile(unittest.TestCase):
             driver.get_connection_info_from_conf,
             conf_dict,
         )
+    @patch('ibm_storage_flocker_driver.ibm_storage_blockdevice.HostActions')
+    @patch(patch_factory)
+    @patch(patch_exists)
+    def test_get_ibm_storage_backend_by_conf__verify_correct_log_level(
+            self, hostaction, factory, exists):
+        log_level = 'INFO'
+        conf_dict = {
+            "management_ip": "x",
+            "username": 'x',
+            "password": "x",
+            "default_service" : 'bronze',
+            driver.CONF_PARAM_DEBUG: log_level,
+        }
+        driver.get_ibm_storage_backend_by_conf(UUID1_STR, conf_dict)
+        self.assertEqual(driver.LOG.level, getattr(driver.logging, log_level))
+
+        log_level = 'ERROR'
+        conf_dict[driver.CONF_PARAM_DEBUG] = log_level
+        driver.get_ibm_storage_backend_by_conf(UUID1_STR, conf_dict)
+        self.assertEqual(driver.LOG.level, getattr(driver.logging, log_level))
 
 
 GET_TOKEN_FUNC = 'ibm_storage_flocker_driver.lib.' \

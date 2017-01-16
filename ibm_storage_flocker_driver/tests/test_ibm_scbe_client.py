@@ -17,7 +17,6 @@
 import unittest
 from mock import patch, MagicMock
 from bitmath import MiB
-
 from ibm_storage_flocker_driver.lib.ibm_scbe_client import (
     IBMSCBEClientAPI,
     DEFAULT_SCBE_PORT,
@@ -25,10 +24,12 @@ from ibm_storage_flocker_driver.lib.ibm_scbe_client import (
     RestClientException,
     HostIdNotFoundByWwn,
 )
+from ibm_storage_flocker_driver.lib import ibm_scbe_client
 from ibm_storage_flocker_driver.lib.abstract_client import (
     VolInfo,
     ConnectionInfo,
 )
+from ibm_storage_flocker_driver.lib.constants import DEFAULT_DEBUG_LEVEL
 
 FAKE_VOL_CONTENT = \
     '[' \
@@ -64,8 +65,8 @@ FAKE_VOL_CONTENT = \
     '"pool":49,' \
     '"perf_class":null}]'
 
-GET_TOKEN_FUNC = 'ibm_storage_flocker_driver.lib.' \
-                 'ibm_scbe_client.RestClient._get_token'
+_RESTCLIENT_PATH = 'ibm_storage_flocker_driver.lib.ibm_scbe_client.RestClient'
+GET_TOKEN_FUNC = _RESTCLIENT_PATH + '._get_token'
 
 TOKEN_EXPIRED_STR = 'Token has expired'
 
@@ -212,9 +213,10 @@ class TestsRESTClientTokenExpire(unittest.TestCase):
         ]
         r.post(resource_url='/url', payload=None)
 
-
+FAKE_MNG_LOG_LEVEL = DEFAULT_DEBUG_LEVEL
 FAKE_MNG_INFO = ConnectionInfo(
-    username='', password='', verify_ssl=False, management_ip='',
+    username='', password='', verify_ssl=False,
+    management_ip='', debug_level=FAKE_MNG_LOG_LEVEL
 )
 
 FAKE_SERVICE_NAME = 'service_name_1'
@@ -312,7 +314,7 @@ class TestsSCBEClient(unittest.TestCase):
     Unit testing for IBMSCBEClientAPI class
     """
 
-    @patch('ibm_storage_flocker_driver.lib.ibm_scbe_client.RestClient')
+    @patch(_RESTCLIENT_PATH)
     def setUp(self, restclient_mock):
         self.client = IBMSCBEClientAPI(FAKE_MNG_INFO)
 
@@ -396,3 +398,23 @@ class TestsSCBEClient(unittest.TestCase):
             return_value=get_hosts_fake)
         _expect = {HOST_ID: FAKE_HOST, HOST2_ID: FAKE_HOST + '1'}
         self.assertEqual(_expect, self.client.get_hosts())
+
+    def test_verify_log_level(self):
+        _fake_mng_info = ConnectionInfo(
+            username='', password='', verify_ssl=False,
+            management_ip='', debug_level=FAKE_MNG_LOG_LEVEL
+        )
+        _fake_mng_info.debug_level = 'DEBUG'
+
+        with patch(_RESTCLIENT_PATH):
+            self.client = IBMSCBEClientAPI(_fake_mng_info)
+        self.assertEqual(
+            ibm_scbe_client.LOG.level,
+            getattr(ibm_scbe_client.logging, _fake_mng_info.debug_level))
+
+        _fake_mng_info.debug_level = 'ERROR'
+        with patch(_RESTCLIENT_PATH):
+            self.client = IBMSCBEClientAPI(_fake_mng_info)
+        self.assertEqual(
+            ibm_scbe_client.LOG.level,
+            getattr(ibm_scbe_client.logging, _fake_mng_info.debug_level))

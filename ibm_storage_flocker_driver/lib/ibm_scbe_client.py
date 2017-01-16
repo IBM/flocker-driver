@@ -228,6 +228,7 @@ class IBMSCBEClientAPI(IBMStorageAbsClient):
         """
         super(IBMStorageAbsClient, self).__init__()
         self.con_info = self._set_defaults_for_con_info(con_info)
+        LOG.setLevel(con_info.debug_level)
 
         referer = URL_SCBE_REFERER.format(
             scbe_ip=self.con_info.management_ip,

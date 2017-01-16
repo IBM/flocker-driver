@@ -14,6 +14,7 @@ coverage.xml
 _trial_temp
 .hypothesis
 .pylintrc
+trial.xml
 
 # Developer
 .project

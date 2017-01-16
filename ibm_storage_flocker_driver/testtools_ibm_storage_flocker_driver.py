@@ -71,6 +71,7 @@ def get_ibm_storage_blockdevice_api_for_test(cluster_id, test_case):
     :returns: A ``IBMStorageBlockDeviceAPI`` instance
     """
     api = get_ibm_storage_backend_from_environment(cluster_id)
+    LOG.setLevel(api._client.con_info.debug_level)
     test_case.addCleanup(detach_destroy_all_volumes, api)
 
     return api

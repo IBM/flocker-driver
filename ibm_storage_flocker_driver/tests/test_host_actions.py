@@ -15,7 +15,6 @@
 ##############################################################################
 
 import unittest
-from subprocess import check_output
 from mock import patch
 from ibm_storage_flocker_driver.lib.host_actions import (
     HostActions,
@@ -24,8 +23,8 @@ from ibm_storage_flocker_driver.lib.host_actions import (
     MultipathCmdNotFound,
     RescanCmdNotFound,
 )
-
-import logging
+from ibm_storage_flocker_driver.lib import host_actions
+from ibm_storage_flocker_driver.lib.constants import DEFAULT_DEBUG_LEVEL
 
 # Constants for unit testing
 MULTIPATH_OUTPUT_WWN_MD = 'dm-0'
@@ -66,6 +65,19 @@ class TestHostActions(unittest.TestCase):
     """
     Unit testing for host actions module
     """
+
+    def test_veryfy_debug_level(self):
+        # check the default
+        HostActions()
+        self.assertEqual(
+            host_actions.LOG.level,
+            getattr(host_actions.logging, DEFAULT_DEBUG_LEVEL))
+
+        # check with specific level
+        HostActions("ERROR")
+        self.assertEqual(
+            host_actions.LOG.level,
+            getattr(host_actions.logging, "ERROR"))
 
     @patch('ibm_storage_flocker_driver.lib.host_actions.check_output')
     @patch('ibm_storage_flocker_driver.lib.host_actions.os.path.exists')

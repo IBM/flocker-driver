@@ -21,6 +21,7 @@ from distutils.spawn import find_executable
 from subprocess import check_output, CalledProcessError, STDOUT
 from ibm_storage_flocker_driver.lib import messages
 from ibm_storage_flocker_driver.lib.utils import logme, config_logger
+from ibm_storage_flocker_driver.lib.constants import DEFAULT_DEBUG_LEVEL
 
 LOG = config_logger(logging.getLogger(__name__))
 
@@ -40,11 +41,12 @@ LOG_PREFIX = '{} : '.format(__name__)
 
 class HostActions(object):
 
-    def __init__(self):
+    def __init__(self, debug_level=DEFAULT_DEBUG_LEVEL):
         """
         Initialize host action object.
         TODO : Consider to use os-brick for rescan and get device.
         """
+        LOG.setLevel(debug_level)
 
         # set required commands path
         self._rescan_cmd = self._find_rescan_cmd()
