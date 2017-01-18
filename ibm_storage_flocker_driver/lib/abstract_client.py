@@ -187,7 +187,7 @@ class IBMStorageAbsClient(object):
         raise NotImplementedError
 
 
-class FactoryBackendAPIClient(object):
+class BackendAPIClientFactory(object):
     """
     Create the backend API client by given management type.
     It's plugable to new management type like direct mode to storage systems.
@@ -200,7 +200,7 @@ class FactoryBackendAPIClient(object):
     The name of the class should be IBMStorage<NEW>Client.
     """
     @staticmethod
-    def get_module_dynamic(backend_type):
+    def get_module(backend_type):
         """
         :param backend_type: String
         :return: module lib.ibm_<backend_type>_client by given backend_type
@@ -229,7 +229,7 @@ class FactoryBackendAPIClient(object):
         return class_object
 
     @classmethod
-    def factory(cls, connection_info, backend_type):
+    def get_backend_api_object(cls, connection_info, backend_type):
         """
         Create backend client object
         :param connection_info: ConnectionInfo
@@ -237,7 +237,7 @@ class FactoryBackendAPIClient(object):
         :return: IBM<backend_type>ClientAPI object
         """
         class_object = cls.get_class_dynamic(
-            cls.get_module_dynamic(backend_type), backend_type)
+            cls.get_module(backend_type), backend_type)
         return class_object(connection_info)
 
 

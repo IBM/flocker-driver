@@ -16,7 +16,6 @@
 
 import unittest
 from nose.plugins.attrib import attr
-import json
 import os
 from ibm_storage_flocker_driver.lib.abstract_client import ConnectionInfo
 from ibm_storage_flocker_driver.lib import ibm_scbe_client

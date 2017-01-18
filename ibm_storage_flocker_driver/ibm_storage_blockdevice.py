@@ -33,7 +33,7 @@ from lib import host_actions
 from ibm_storage_flocker_driver.lib import messages
 from ibm_storage_flocker_driver.lib.abstract_client import (
     ConnectionInfo,
-    FactoryBackendAPIClient,
+    BackendAPIClientFactory,
 )
 from ibm_storage_flocker_driver.lib.utils import logme, config_logger
 from ibm_storage_flocker_driver.lib.constants import (
@@ -66,7 +66,8 @@ def get_ibm_storage_backend_by_conf(cluster_id, conf_dict):
     # Get backend client object
     connection_info = get_connection_info_from_conf(conf_dict)
     backend_type = conf_dict.get(CONF_PARAM_BACKEND_TYPE, messages.SCBE_STRING)
-    client = FactoryBackendAPIClient.factory(connection_info, backend_type)
+    client = BackendAPIClientFactory.get_backend_api_object(
+        connection_info, backend_type)
     LOG.setLevel(connection_info.debug_level)
 
     # Verification

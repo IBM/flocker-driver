@@ -35,7 +35,7 @@ from ibm_storage_flocker_driver.lib.host_actions import (
 from ibm_storage_flocker_driver.lib.abstract_client import ConnectionInfo
 from ibm_storage_flocker_driver.lib.abstract_client import VolInfo
 from ibm_storage_flocker_driver.lib.abstract_client import (
-    FactoryBackendAPIClient,
+    BackendAPIClientFactory,
     IBMDriverNoClientModuleFound,
 )
 from ibm_storage_flocker_driver.lib.constants import DEFAULT_DEBUG_LEVEL
@@ -598,7 +598,7 @@ class TestBlockDeviceVerifyDefaultService(unittest.TestCase):
         )
 
 patch_factory = "ibm_storage_flocker_driver.ibm_storage_blockdevice." \
-                "FactoryBackendAPIClient.factory"
+                "BackendAPIClientFactory.get_backend_api_object"
 patch_exists = "ibm_storage_flocker_driver.ibm_storage_blockdevice." \
                "verify_default_service_exists"
 
@@ -701,12 +701,12 @@ GET_TOKEN_FUNC = 'ibm_storage_flocker_driver.lib.' \
 
 class TestBlockDeviceFactoryClient(unittest.TestCase):
     """
-    Unit testing for FactoryBackendAPIClient
+    Unit testing for BackendAPIClientFactory
     """
 
     def test_factory_positive(self):
-        factor_module = FactoryBackendAPIClient.get_module_dynamic('scbe')
-        factor_class = FactoryBackendAPIClient.get_class_dynamic(
+        factor_module = BackendAPIClientFactory.get_module('scbe')
+        factor_class = BackendAPIClientFactory.get_class_dynamic(
             factor_module, 'scbe')
         factor_class.__init__ = Mock(return_value=None)
         factor_class(Mock())
@@ -714,14 +714,14 @@ class TestBlockDeviceFactoryClient(unittest.TestCase):
     def test_factory_negative(self):
         self.assertRaises(
             IBMDriverNoClientModuleFound,
-            FactoryBackendAPIClient.get_module_dynamic,
+            BackendAPIClientFactory.get_module,
             'fake_module_type',
         )
 
-        factor_module = FactoryBackendAPIClient.get_module_dynamic('scbe')
+        factor_module = BackendAPIClientFactory.get_module('scbe')
         self.assertRaises(
             AttributeError,
-            FactoryBackendAPIClient.get_class_dynamic,
+            BackendAPIClientFactory.get_class_dynamic,
             factor_module,
             'fake_module_type',
         )
