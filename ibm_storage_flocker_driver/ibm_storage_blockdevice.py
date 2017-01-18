@@ -231,17 +231,6 @@ class SCBENoServicesExist(Exception):
         )
 
 
-class VolumeNotInFlockerCluster(Exception):
-
-    def __init__(self, volume, clusterid):
-        Exception.__init__(
-            self,
-            messages.VOLUME_NOT_EXIST_IN_FLOCKER_CLUSTER.format(
-                volume=volume,
-                cluster=clusterid),
-        )
-
-
 class YMLFileWrongValue(Exception):
 
     def __init__(self, parameter_name, expected_value):
@@ -583,11 +572,11 @@ class IBMStorageBlockDeviceAPI(object):
         return BlockDeviceVolume from VolInfo.
 
         :param vol_obj: VolInfo
-        :raise VolumeNotInFlockerCluster:
+        :raise UnknownVolume:
         :return: BlockDeviceVolume
         """
         if not self._is_cluster_volume(vol_obj.name):
-            raise VolumeNotInFlockerCluster(vol_obj.name, self._cluster_id)
+            raise UnknownVolume(unicode(vol_obj.wwn))
 
         host = self._client.get_vol_mapping(vol_obj.wwn)
         host = unicode(host) if host else None

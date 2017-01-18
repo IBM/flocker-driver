@@ -343,7 +343,7 @@ class TestBlockDevice(unittest.TestCase):
             FAKE_CLUSTER_ID, self.mock_client, 'fakepool')
         driver_obj._is_cluster_volume = MagicMock(return_value=False)
         self.assertRaises(
-            driver.VolumeNotInFlockerCluster,
+            UnknownVolume,
             driver_obj._get_blockdevicevolume_by_vol,
             vol_info)
 
@@ -355,7 +355,7 @@ class TestBlockDevice(unittest.TestCase):
         driver_obj = driver.IBMStorageBlockDeviceAPI(
             UUID1_STR, self.mock_client, 'fakepool')
 
-        self.assertRaises(driver.VolumeNotInFlockerCluster, driver_obj.destroy_volume,
+        self.assertRaises(UnknownVolume, driver_obj.destroy_volume,
                           UUID(UUID1_STR))
 
     def test_IBMStorageBlockDeviceAPI_destroy_volume_exist(self):
