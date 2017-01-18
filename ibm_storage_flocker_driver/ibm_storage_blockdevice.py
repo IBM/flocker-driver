@@ -410,11 +410,12 @@ class IBMStorageBlockDeviceAPI(object):
             exist.
         :return: ``None``
         """
-        vol = self._get_volume(blockdevice_id)  # raise exception if not exist
+        # raise exception if not exist
+        vol = self._get_volume_object(blockdevice_id)
         self._client.delete_volume(blockdevice_id)
         LOG.info(messages.DRIVER_OPERATION_VOL_DESTROY.format(
-            blockdevice_id=blockdevice_id,
-            wwn=vol.blockdevice_id,
+            volname=vol.name,
+            wwn=blockdevice_id,
         ))
 
     @logme(LOG, PREFIX)

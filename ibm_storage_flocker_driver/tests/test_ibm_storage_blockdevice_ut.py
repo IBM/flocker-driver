@@ -130,7 +130,7 @@ class TestBlockDevice(unittest.TestCase):
     """
 
     def setUp(self):
-        self.mock_client = MagicMock
+        self.mock_client = MagicMock()
         self.mock_client.con_info = CONF_INFO_MOCK
         self.mock_client.backend_type = messages.SCBE_STRING
 
@@ -352,11 +352,12 @@ class TestBlockDevice(unittest.TestCase):
                          driver_obj._get_blockdevicevolume_by_vol(vol_info))
 
     def test_IBMStorageBlockDeviceAPI_destroy_volume_not_exist(self):
+        self.mock_client.list_volumes = MagicMock(return_value=[])
         driver_obj = driver.IBMStorageBlockDeviceAPI(
             UUID1_STR, self.mock_client, 'fakepool')
 
         self.assertRaises(UnknownVolume, driver_obj.destroy_volume,
-                          UUID(UUID1_STR))
+                          unicode(UUID(UUID1_STR)))
 
     def test_IBMStorageBlockDeviceAPI_destroy_volume_exist(self):
         self.mock_client.delete_volume = Mock()
@@ -371,7 +372,7 @@ class TestBlockDevice(unittest.TestCase):
         driver_obj._get_volume = \
             MagicMock(return_value=expacted_blockdevicevolume)
 
-        driver_obj.destroy_volume(UUID(UUID1_STR))
+        driver_obj.destroy_volume(unicode(UUID(UUID1_STR)))
 
 
 class TestBlockDeviceAttachDetach(unittest.TestCase):
@@ -414,8 +415,6 @@ class TestBlockDeviceAttachDetach(unittest.TestCase):
             self.expacted_blockdevicevolume.set(attached_to=None)
         self.driver_obj._get_volume = \
             MagicMock(return_value=self.expacted_blockdevicevolume)
-        self.driver_obj._get_volume = \
-            MagicMock(return_value=self.expacted_blockdevicevolume)
 
         attached_to = self.driver_obj.attach_volume(
             unicode(UUID1_STR), u'fake-host').attached_to
@@ -433,15 +432,16 @@ class TestBlockDeviceAttachDetach(unittest.TestCase):
             UnattachedVolume, self.driver_obj.detach_volume,
             unicode(UUID1_STR))
 
-    def test_IBMStorageBlockDeviceAPI_attach_volume_succeed(self):
+    def test_IBMStorageBlockDeviceAPI_detach_volume_succeed(self):
         self.expacted_blockdevicevolume = \
             self.expacted_blockdevicevolume.set(attached_to=u'fake-host')
         self.driver_obj._get_volume = \
             MagicMock(return_value=self.expacted_blockdevicevolume)
-        self.driver_obj._get_volume = \
-            MagicMock(return_value=self.expacted_blockdevicevolume)
+        self.driver_obj._clean_up_device_before_unmap = Mock()
 
-        self.driver_obj.detach_volume(unicode(UUID1_STR))
+        self.assertEqual(
+            None,
+            self.driver_obj.detach_volume(unicode(UUID1_STR)))
 
 
 WWN1 = '6001738CFC9035E80000000000014A81'

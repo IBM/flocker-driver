@@ -111,7 +111,7 @@ ISCSI_CMD_FAIL_BUT_CONTINUE_ON = \
 MESSAGE_TYPE_ELIOT_LOG = "flocker:node:agents:blockdevice:ibm"
 
 EXCEPTION_NO_MANAGEMENT_TYPE_EXIST = \
-    "No Python module named {module} exist for management type {mtype}."
+    "No Python module {module} exists for management type {mtype}."
 
 DRIVER_INITIALIZATION = \
     PACKAGE_FORMAL_DESCRIPTION + ' is up and running.' \
@@ -119,36 +119,36 @@ DRIVER_INITIALIZATION = \
     'and user name {username}'
 
 DRIVER_OPERATION_VOL_CREATE_WITH_PROFILE = \
-    "Created a volume name {name}, size={size}, profile={profile}, wwn={wwn}"
+    "Created a volume name {name}, size={size}, profile={profile}, WWN={wwn}"
 
 DRIVER_OPERATION_VOL_DESTROY = \
-    "Destroyed a volume blockdevice_id={blockdevice_id}, wwn={wwn}"
+    "Destroyed a volume name {volname}, WWN={wwn}"
 
 DRIVER_OPERATION_VOL_CREATING = \
     "Creating a volume dataset_id={dataset_id}, size={size}, " \
     "on the default profile {default_profile}"
 
 DRIVER_OPERATION_VOL_ATTACH = \
-    "Attached volume name {blockdevice_id} to host {attach_to}"
+    "Attached volume WWN {blockdevice_id} to host {attach_to}"
 
 DRIVER_OPERATION_VOL_DETTACH = \
-    "Detached volume lockdevice_id {blockdevice_id} from host {attach_to}"
+    "Detached volume WWN {blockdevice_id} from host {attach_to}"
 
 DRIVER_OPERATION_VOL_RESCAN_ISCSI = \
-    'RESCAN : Executing iSCSI OS rescan : {cmd}'
+    'RESCAN: Executing OS iSCSI rescan: {cmd}'
 
 DRIVER_OPERATION_VOL_RESCAN_OS = \
-    'RESCAN : Executing OS rescan : {cmd}'
+    'RESCAN: Executing OS rescan: {cmd}'
 
 DRIVER_OPERATION_VOL_RESCAN_MULTIPATH = \
-    'RESCAN : Executing multipathing rescan : {cmd}'
+    'RESCAN: Executing multipathing rescan: {cmd}'
 
 DRIVER_OPERATION_VOL_RESCAN_START_ATTACH = \
-    'RESCAN : Executing rescan commands to discover device for ' \
+    'RESCAN: Executing rescan commands to discover device for ' \
     'WWN [{blockdevice_id}]'
 
 DRIVER_OPERATION_VOL_RESCAN_START_DETACH = \
-    'RESCAN : Executing rescan commands to clean device of ' \
+    'RESCAN: Executing rescan commands to clean device of ' \
     'WWN [{blockdevice_id}]'
 
 DRIVER_OPERATION_GET_MULTIPATH_DEVICE = \
