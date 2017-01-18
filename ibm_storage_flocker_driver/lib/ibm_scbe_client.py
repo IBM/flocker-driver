@@ -143,8 +143,10 @@ class RestClient(object):
     @_retry_if_token_expire
     def post(self, resource_url, payload=None,
              exit_status=HTTP_EXIT_STATUS['CREATED']):
-        # TODO : Return json.loads
-        return self._generic_action('post', resource_url, payload, exit_status)
+
+        response = self._generic_action('post', resource_url,
+                                        payload, exit_status)
+        return json.loads(response.content)
 
     @_retry_if_token_expire
     def delete(self, resource_url, payload=None,
@@ -271,7 +273,9 @@ class IBMSCBEClientAPI(IBMStorageAbsClient):
             size=size,
             size_unit="byte",
         )
-        return self._client.post(URL_SCBE_RESOURCE_VOLUME, payload)
+
+        post_response = self._client.post(URL_SCBE_RESOURCE_VOLUME, payload)
+        return self._get_vol_info(post_response)
 
     def _service_list(self, **kwargs):
         """

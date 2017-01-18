@@ -358,15 +358,11 @@ class IBMStorageBlockDeviceAPI(object):
         :returns: A ``BlockDeviceVolume`` of the newly created volume.
         """
         volume_name = build_vol_name(dataset_id, self._cluster_id_slug)
-        self._client.create_volume(
+        vol_obj = self._client.create_volume(
             vol=volume_name,
             resource=profile_name,
             size=size,
         )
-
-        # TODO : improve performance by use the volume object during create
-        vol_obj = self._client.list_volumes(resource=self._storage_resource,
-                                            vol_name=volume_name)[0]
 
         LOG.info(messages.DRIVER_OPERATION_VOL_CREATE_WITH_PROFILE.format(
             name=vol_obj.name,
@@ -386,7 +382,6 @@ class IBMStorageBlockDeviceAPI(object):
         :param int size: The size of the new volume in bytes.
         :returns: A ``BlockDeviceVolume``.
         """
-
         default_profile = self._client.handle_default_profile(
             self._storage_resource)
 

@@ -20,6 +20,8 @@ import json
 import os
 from ibm_storage_flocker_driver.lib.abstract_client import ConnectionInfo
 from ibm_storage_flocker_driver.lib import ibm_scbe_client
+from ibm_storage_flocker_driver.lib.constants import DEFAULT_DEBUG_LEVEL
+
 ENV_SCBE_IP = 'SCBE_IP'
 ENV_SCBE_USER = 'SCBE_USER'
 ENV_SCBE_PASSWORD = 'SCBE_PASSWORD'
@@ -48,6 +50,7 @@ class IntegrationTestSCBEClient(unittest.TestCase):
             os.environ[ENV_SCBE_IP],
             os.environ[ENV_SCBE_USER],
             os.environ[ENV_SCBE_PASSWORD],
+            debug_level=DEFAULT_DEBUG_LEVEL,
         )
         c = ibm_scbe_client.IBMSCBEClientAPI(con_info)
 
@@ -60,17 +63,17 @@ class IntegrationTestSCBEClient(unittest.TestCase):
         self.assertTrue(c.resource_exists(service))
 
         vol_size = 1024 * 1024 * 10
-        vol = c.create_volume(vol=volname, resource=service, size=vol_size)
-        vol = json.loads(vol.content)
-        vols = [i for i in c.list_volumes() if i.wwn == vol['scsi_identifier']]
+        self.vol = c.create_volume(
+            vol=volname, resource=service, size=vol_size)
+        vols = [i for i in c.list_volumes() if i.wwn == self.vol.wwn]
         self.assertEqual(len(vols), 1)
 
-        c.map_volume(vol['scsi_identifier'], host)
-        self.assertEqual(c.get_vol_mapping('shay'), host)
+        c.map_volume(self.vol.wwn, host)
+        self.assertEqual(c.get_vol_mapping(self.vol.wwn), host)
 
-        c.unmap_volume(vol['scsi_identifier'], host)
-        self.assertEqual(c.get_vol_mapping('shay'), None)
+        c.unmap_volume(self.vol.wwn, host)
+        self.assertEqual(c.get_vol_mapping(self.vol.wwn), None)
 
-        c.delete_volume(vol['scsi_identifier'])
-        vols = [i for i in c.list_volumes() if i.wwn == vol['scsi_identifier']]
+        c.delete_volume(self.vol.wwn)
+        vols = [i for i in c.list_volumes() if i.wwn == self.vol.wwn]
         self.assertEqual(len(vols), 0)

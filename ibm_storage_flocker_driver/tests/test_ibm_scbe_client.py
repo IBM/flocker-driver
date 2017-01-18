@@ -15,6 +15,7 @@
 ##############################################################################
 
 import unittest
+import json
 from mock import patch, MagicMock
 from bitmath import MiB
 from ibm_storage_flocker_driver.lib.ibm_scbe_client import (
@@ -70,6 +71,10 @@ GET_TOKEN_FUNC = _RESTCLIENT_PATH + '._get_token'
 
 TOKEN_EXPIRED_STR = 'Token has expired'
 
+MAPPING_RESPONSE_SAMPLE = """
+{u'mappings': [{u'volume': u'6001738CFC9035E8000000000001396A',
+u'lun_number': 1, u'host': 331, u'id': 845}]}
+"""
 
 class VolGetFakeRespond(object):
 
@@ -78,73 +83,89 @@ class VolGetFakeRespond(object):
         self.status_code = status_code
 
 
-class TestsRESTClient(unittest.TestCase):
+class TestsRESTClientInit(unittest.TestCase):
     """
-    Unit testing for RestClient class
+    Unit testing for RestClient class init func
     """
 
     @patch(GET_TOKEN_FUNC)
     def test_client_init(self, get_token_mock):
         get_token_mock.return_value = 'FAKE TOKEN'
-        con_info = ConnectionInfo(username='', password='',
-                                  verify_ssl=False, management_ip='')
-        r = RestClient(con_info, base_url='', auth_url='', referer='referer')
-        self.assertEqual(r.session.headers['Authorization'],
-                         'Token FAKE TOKEN')
-        self.assertEqual(r.session.headers['Content-Type'], 'application/json')
+        r = RestClient(
+            FAKE_MNG_INFO, base_url='', auth_url='', referer='referer')
+
+        self.assertEqual(
+            r.session.headers['Authorization'], 'Token FAKE TOKEN')
+        self.assertEqual(
+            r.session.headers['Content-Type'], 'application/json')
         self.assertEqual(r.session.headers['referer'], 'referer')
 
-    @patch('ibm_storage_flocker_driver.lib.ibm_scbe_client.requests')
-    @patch(GET_TOKEN_FUNC)
-    def test_client__generic_action(self, requests_mock, get_token_mock):
-        get_token_mock.return_value = 'FAKE TOKEN'
-        con_info = ConnectionInfo(username='', password='', verify_ssl=False,
-                                  management_ip='')
-        r = RestClient(con_info, base_url='', auth_url='', referer='referer')
-        r._generic_action(action='get', resource_url='/url', payload=None)
-        r.session.get.assert_called_once_with('/url', data='null')
-        self.assertRaises(RestClientException,
-                          r._generic_action,
-                          action='get',
-                          resource_url='/url',
-                          payload=None,
-                          exit_status=666)
+
+class TestsRESTClientGetPostFuncs(unittest.TestCase):
+    """
+    Unit testing for RestClient class
+    """
 
     @patch('ibm_storage_flocker_driver.lib.ibm_scbe_client.requests')
     @patch(GET_TOKEN_FUNC)
-    def test_client__get(self, requests_mock, get_token_mock):
+    def setUp(self, requests_mock, get_token_mock):
         get_token_mock.return_value = 'FAKE TOKEN'
-        r = RestClient(FAKE_MNG_INFO, base_url='', auth_url='',
-                       referer='referer')
-        r.session.get = MagicMock(
+        self.r = RestClient(
+            FAKE_MNG_INFO, base_url='', auth_url='', referer='referer')
+
+    def test_client__generic_action(self):
+        self.r._generic_action(action='get', resource_url='/url', payload=None)
+        self.r.session.get.assert_called_once_with('/url', data='null')
+        with self.assertRaises(RestClientException):
+            self.r._generic_action(
+                action='get',
+                resource_url='/url',
+                payload=None,
+                exit_status=666,
+            )
+
+    def test_client__get(self):
+        self.r.session.get = MagicMock(
             return_value=VolGetFakeRespond(FAKE_VOL_CONTENT, 200))
         # Should pass without exception
-        respond = r.get(resource_url='/url', payload=None)
+        respond = self.r.get(resource_url='/url', payload=None)
         # trigger with right get params
-        r.session.get.assert_called_once_with('/url', params=None)
+        self.r.session.get.assert_called_once_with('/url', params=None)
         # check json.loads
         self.assertTrue(isinstance(respond, list))
 
-    @patch('ibm_storage_flocker_driver.lib.ibm_scbe_client.requests')
-    @patch(GET_TOKEN_FUNC)
-    def test_client__get_bad_status_code(self, requests_mock, get_token_mock):
-        get_token_mock.return_value = 'FAKE TOKEN'
-        r = RestClient(FAKE_MNG_INFO, base_url='', auth_url='',
-                       referer='referer')
-        r.session.get = MagicMock(
+    def test_client__get_bad_status_code(self):
+        self.r.session.get = MagicMock(
             return_value=VolGetFakeRespond(FAKE_VOL_CONTENT, 201))
         self.assertRaises(RestClientException,
-                          r.get,
+                          self.r.get,
                           resource_url='/url',
                           payload=None,
                           )
         try:
             # just double check, if it raises the right exception
-            r.get(resource_url='/url', payload=None)
+            self.r.get(resource_url='/url', payload=None)
         except RestClientException as e:
             response = e.args[0]
             self.assertEqual(response.content, FAKE_VOL_CONTENT)
             self.assertEqual(response.status_code, 201)
+
+    def test_client__post_new(self,):
+        vol1_expected = json.loads(FAKE_VOL_CONTENT)[0]
+        vol1 = json.dumps(vol1_expected)
+        self.r.session.post = MagicMock(
+            return_value=VolGetFakeRespond(
+                vol1, RestClient.HTTP_EXIT_STATUS['CREATED']))
+        # Should pass without exception
+        respond = self.r.post(resource_url='/create', payload=None)
+
+        # trigger with right post params
+        self.r.session.post.assert_called_once_with(
+            '/create', data=json.dumps(None))
+
+        # check json.loads
+        self.assertTrue(isinstance(respond, dict))
+
 
 class TestsRESTClientTokenExpire(unittest.TestCase):
     """

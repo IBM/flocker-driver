@@ -214,9 +214,7 @@ class TestBlockDevice(unittest.TestCase):
 
         driver_obj = driver.IBMStorageBlockDeviceAPI(
             UUID1_STR, self.mock_client, 'fakepool')
-
-        bdv = driver_obj.create_volume(UUID(UUID1_STR),
-                                       GiB(size).to_Byte().value)
+        bdv = driver_obj.create_volume(UUID(UUID1_STR), size)
 
         expacted_blockdevicevolume = BlockDeviceVolume(
             blockdevice_id=unicode(mock_vol_obj.wwn),
@@ -381,10 +379,9 @@ class TestBlockDeviceAttachDetach(unittest.TestCase):
     """
 
     def setUp(self):
-        self.mock_client = MagicMock
+        self.mock_client = MagicMock()
         self.mock_client.con_info = CONF_INFO_MOCK
         self.mock_client.backend_type = messages.SCBE_STRING
-
         self.mock_client.map_volume = MagicMock()
         self.mock_client.unmap_volume = MagicMock()
         self.driver_obj = driver.IBMStorageBlockDeviceAPI(
@@ -401,8 +398,6 @@ class TestBlockDeviceAttachDetach(unittest.TestCase):
     def test_IBMStorageBlockDeviceAPI_attach_volume_already_attached(self):
         self.expacted_blockdevicevolume = \
             self.expacted_blockdevicevolume.set(attached_to=u'fake-host')
-        self.driver_obj._get_volume = \
-            MagicMock(return_value=self.expacted_blockdevicevolume)
         self.driver_obj._get_volume = \
             MagicMock(return_value=self.expacted_blockdevicevolume)
 
@@ -423,8 +418,6 @@ class TestBlockDeviceAttachDetach(unittest.TestCase):
     def test_IBMStorageBlockDeviceAPI_attach_volume_already_detached(self):
         self.expacted_blockdevicevolume = \
             self.expacted_blockdevicevolume.set(attached_to=None)
-        self.driver_obj._get_volume = \
-            MagicMock(return_value=self.expacted_blockdevicevolume)
         self.driver_obj._get_volume = \
             MagicMock(return_value=self.expacted_blockdevicevolume)
 
