@@ -24,6 +24,7 @@ from flocker.node.agents.blockdevice import (
     BlockDeviceVolume,
     UnknownVolume,
     UnattachedVolume,
+    AlreadyAttachedVolume,
 )
 from bitmath import GiB
 from ibm_storage_flocker_driver.tests import test_host_actions
@@ -38,6 +39,7 @@ from ibm_storage_flocker_driver.lib.abstract_client import (
     IBMDriverNoClientModuleFound,
 )
 from ibm_storage_flocker_driver.lib.constants import DEFAULT_DEBUG_LEVEL
+from ibm_storage_flocker_driver.lib import messages
 
 # Constants for unit testing
 UUID1_STR = '737d4ea0-28bf-11e6-b12e-68f7288f1809'
@@ -77,6 +79,8 @@ LIST_VOLUMES = 'ibm_storage_flocker_driver.ibm_storage_blockdevice.' \
 
 CONF_INFO_MOCK = MagicMock()
 CONF_INFO_MOCK.debug_level = DEFAULT_DEBUG_LEVEL
+CONF_INFO_MOCK.con_info.credential = dict(username='fake')
+
 
 class TestBlockDeviceBasicModuleFuncs(unittest.TestCase):
     """
@@ -128,6 +132,7 @@ class TestBlockDevice(unittest.TestCase):
     def setUp(self):
         self.mock_client = MagicMock
         self.mock_client.con_info = CONF_INFO_MOCK
+        self.mock_client.backend_type = messages.SCBE_STRING
 
     @patch(IS_MULTIPATH_EXIST)
     def test_IBMStorageBlockDeviceAPI_init(self, check_output_mock):
@@ -244,7 +249,7 @@ class TestBlockDevice(unittest.TestCase):
         driver_obj._get_volume_object = MagicMock(return_value=VolInfoFake())
         driver_obj._get_blockdevicevolume_by_vol = MagicMock(
             return_value=blockdevicevolume)
-        self.mock_client.system_type = 'XIV'
+        self.mock_client.backend_type = 'XIV'
 
         class r_list():
 
@@ -346,6 +351,98 @@ class TestBlockDevice(unittest.TestCase):
         self.assertEqual(blockdevicevolume,
                          driver_obj._get_blockdevicevolume_by_vol(vol_info))
 
+    def test_IBMStorageBlockDeviceAPI_destroy_volume_not_exist(self):
+        driver_obj = driver.IBMStorageBlockDeviceAPI(
+            UUID1_STR, self.mock_client, 'fakepool')
+
+        self.assertRaises(driver.VolumeNotInFlockerCluster, driver_obj.destroy_volume,
+                          UUID(UUID1_STR))
+
+    def test_IBMStorageBlockDeviceAPI_destroy_volume_exist(self):
+        self.mock_client.delete_volume = Mock()
+        driver_obj = driver.IBMStorageBlockDeviceAPI(
+            UUID1_STR, self.mock_client, 'fakepool')
+        expacted_blockdevicevolume = BlockDeviceVolume(
+            blockdevice_id=unicode('999'),
+            size=10,
+            attached_to=None,
+            dataset_id=UUID(UUID1_STR),
+        )
+        driver_obj._get_volume = \
+            MagicMock(return_value=expacted_blockdevicevolume)
+
+        driver_obj.destroy_volume(UUID(UUID1_STR))
+
+
+class TestBlockDeviceAttachDetach(unittest.TestCase):
+    """
+    Unit testing for IBMStorageBlockDeviceAPI Class attach detach methods
+    """
+
+    def setUp(self):
+        self.mock_client = MagicMock
+        self.mock_client.con_info = CONF_INFO_MOCK
+        self.mock_client.backend_type = messages.SCBE_STRING
+
+        self.mock_client.map_volume = MagicMock()
+        self.mock_client.unmap_volume = MagicMock()
+        self.driver_obj = driver.IBMStorageBlockDeviceAPI(
+            UUID1_STR, self.mock_client, 'fakepool')
+        self.driver_obj._host_ops.rescan_scsi = MagicMock()
+
+        self.expacted_blockdevicevolume = BlockDeviceVolume(
+            blockdevice_id=unicode('999'),
+            size=10,
+            attached_to=None,
+            dataset_id=UUID(UUID1_STR),
+        )
+
+    def test_IBMStorageBlockDeviceAPI_attach_volume_already_attached(self):
+        self.expacted_blockdevicevolume = \
+            self.expacted_blockdevicevolume.set(attached_to=u'fake-host')
+        self.driver_obj._get_volume = \
+            MagicMock(return_value=self.expacted_blockdevicevolume)
+        self.driver_obj._get_volume = \
+            MagicMock(return_value=self.expacted_blockdevicevolume)
+
+        self.assertRaises(
+            AlreadyAttachedVolume, self.driver_obj.attach_volume,
+            unicode(UUID1_STR), 'fake-host')
+
+    def test_IBMStorageBlockDeviceAPI_attach_volume_succeed(self):
+        self.expacted_blockdevicevolume = \
+            self.expacted_blockdevicevolume.set(attached_to=None)
+        self.driver_obj._get_volume = \
+            MagicMock(return_value=self.expacted_blockdevicevolume)
+        self.driver_obj._get_volume = \
+            MagicMock(return_value=self.expacted_blockdevicevolume)
+
+        attached_to = self.driver_obj.attach_volume(
+            unicode(UUID1_STR), u'fake-host').attached_to
+        self.assertEqual(attached_to, 'fake-host')
+
+    def test_IBMStorageBlockDeviceAPI_attach_volume_already_detached(self):
+        self.expacted_blockdevicevolume = \
+            self.expacted_blockdevicevolume.set(attached_to=None)
+        self.driver_obj._get_volume = \
+            MagicMock(return_value=self.expacted_blockdevicevolume)
+        self.driver_obj._get_volume = \
+            MagicMock(return_value=self.expacted_blockdevicevolume)
+
+        self.assertRaises(
+            UnattachedVolume, self.driver_obj.detach_volume,
+            unicode(UUID1_STR))
+
+    def test_IBMStorageBlockDeviceAPI_attach_volume_succeed(self):
+        self.expacted_blockdevicevolume = \
+            self.expacted_blockdevicevolume.set(attached_to=u'fake-host')
+        self.driver_obj._get_volume = \
+            MagicMock(return_value=self.expacted_blockdevicevolume)
+        self.driver_obj._get_volume = \
+            MagicMock(return_value=self.expacted_blockdevicevolume)
+
+        self.driver_obj.detach_volume(unicode(UUID1_STR))
+
 
 WWN1 = '6001738CFC9035E80000000000014A81'
 WWN2 = '6001738CFC9035E80000000000014A82'
@@ -390,14 +487,16 @@ class TestBlockDeviceVolumeList(unittest.TestCase):
         ]
         mock_client = MagicMock
 
-        mock_client.list_volumes = MagicMock(
-            return_value=self.list_volumes_fake)
-        mock_client.get_vols_mapping = MagicMock(
-            return_value=self.get_vols_mapping_fake)
-        mock_client.get_hosts = MagicMock(
-            return_value=self.get_hosts_fake)
+        mock_client.list_volumes = \
+            MagicMock(return_value=self.list_volumes_fake)
+        mock_client.get_vols_mapping = \
+            MagicMock(return_value=self.get_vols_mapping_fake)
+        mock_client.get_hosts = \
+            MagicMock(return_value=self.get_hosts_fake)
+        mock_client.backend_type = messages.SCBE_STRING
 
         mock_client.con_info.debug_level = DEFAULT_DEBUG_LEVEL
+        mock_client.con_info.credential = dict(username='fake')
 
         self.driver_obj = driver.IBMStorageBlockDeviceAPI(
             UUID1_STR, mock_client, 'fakepool')
@@ -580,6 +679,7 @@ class TestBlockDeviceConfigurationFile(unittest.TestCase):
             driver.get_connection_info_from_conf,
             conf_dict,
         )
+
     @patch('ibm_storage_flocker_driver.ibm_storage_blockdevice.HostActions')
     @patch(patch_factory)
     @patch(patch_exists)
@@ -590,7 +690,7 @@ class TestBlockDeviceConfigurationFile(unittest.TestCase):
             "management_ip": "x",
             "username": 'x',
             "password": "x",
-            "default_service" : 'bronze',
+            "default_service": 'bronze',
             driver.CONF_PARAM_DEBUG: log_level,
         }
         driver.get_ibm_storage_backend_by_conf(UUID1_STR, conf_dict)

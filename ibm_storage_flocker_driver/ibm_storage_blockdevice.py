@@ -121,12 +121,12 @@ def verify_default_service_exists(default_service_name, client):
     if default_service_name == DEFAULT_SERVICE:
         scbe_services = client.list_service_names()
         if scbe_services:
-            LOG.info(messages.VERIFIED_AVAILABLE_SCBE_SERVICES.
-                     format(len(scbe_services), scbe_services))
+            LOG.debug(messages.VERIFIED_AVAILABLE_SCBE_SERVICES.
+                      format(len(scbe_services), scbe_services))
         else:
             raise SCBENoServicesExist(client.con_info.management_ip)
     elif client.resource_exists(default_service_name):
-        LOG.info(messages.VERIFIED_POOL_EXISTS.format(default_service_name))
+        LOG.debug(messages.VERIFIED_POOL_EXISTS.format(default_service_name))
     else:
         raise StoragePoolNotExist(default_service_name,
                                   client.con_info.management_ip)
@@ -277,6 +277,11 @@ class IBMStorageBlockDeviceAPI(object):
         self._cluster_id_slug = uuid2slug(self._cluster_id)
         self._host_ops = HostActions(backend_client.con_info.debug_level)
         self._is_multipathing = self._host_ops.is_multipath_active()
+        LOG.info(messages.DRIVER_INITIALIZATION.format(
+            backend_type=self._client.backend_type,
+            backend_ip=self._client.con_info.management_ip,
+            username=self._client.con_info.credential['username'],
+        ))
 
     @staticmethod
     def _get_host():
@@ -374,12 +379,11 @@ class IBMStorageBlockDeviceAPI(object):
         vol_obj = self._client.list_volumes(resource=self._storage_resource,
                                             vol_name=volume_name)[0]
 
-        LOG.info("Created Volume {name}, size={size}, "
-                 "service={service}, wwn={wwn}"
-                 "".format(name=vol_obj.name,
-                           size=vol_obj.size,
-                           service=self._storage_resource,
-                           wwn=vol_obj.wwn))
+        LOG.info(messages.DRIVER_OPERATION_VOL_CREATE_WITH_PROFILE.format(
+            name=vol_obj.name,
+            size=vol_obj.size,
+            profile=profile_name,
+            wwn=vol_obj.wwn))
 
         return _get_blockdevicevolume(dataset_id, vol_obj.wwn, vol_obj.size)
 
@@ -396,6 +400,13 @@ class IBMStorageBlockDeviceAPI(object):
 
         default_profile = self._client.handle_default_profile(
             self._storage_resource)
+
+        LOG.info(messages.DRIVER_OPERATION_VOL_CREATING.format(
+            dataset_id=dataset_id,
+            size=size,
+            default_profile=default_profile,
+        ))
+
         return self.create_volume_with_profile(dataset_id, size,
                                                default_profile)
 
@@ -410,8 +421,12 @@ class IBMStorageBlockDeviceAPI(object):
             exist.
         :return: ``None``
         """
-        self._get_volume(blockdevice_id)  # raise UnknownVolume if not exist
+        vol = self._get_volume(blockdevice_id)  # raise exception if not exist
         self._client.delete_volume(blockdevice_id)
+        LOG.info(messages.DRIVER_OPERATION_VOL_DESTROY.format(
+            blockdevice_id=blockdevice_id,
+            wwn=vol.blockdevice_id,
+        ))
 
     @logme(LOG, PREFIX)
     def attach_volume(self, blockdevice_id, attach_to):
@@ -443,8 +458,12 @@ class IBMStorageBlockDeviceAPI(object):
         self._client.map_volume(wwn=blockdevice_id, host=attach_to)
 
         attached_volume = volume.set(attached_to=attach_to)
+        LOG.info(messages.DRIVER_OPERATION_VOL_ATTACH.format(
+            blockdevice_id=blockdevice_id, attach_to=attach_to))
 
         # Rescan the OS to discover the attached volume
+        LOG.info(messages.DRIVER_OPERATION_VOL_RESCAN_START_ATTACH.format(
+            blockdevice_id=blockdevice_id))
         self._host_ops.rescan_scsi()
 
         return attached_volume
@@ -474,8 +493,12 @@ class IBMStorageBlockDeviceAPI(object):
 
         self._clean_up_device_before_unmap(blockdevice_id)
         self._client.unmap_volume(wwn=blockdevice_id, host=volume.attached_to)
+        LOG.info(messages.DRIVER_OPERATION_VOL_DETTACH.format(
+            blockdevice_id=blockdevice_id, attach_to=volume.attached_to))
 
         # Rescan the OS to clean the detached volume
+        LOG.info(messages.DRIVER_OPERATION_VOL_RESCAN_START_ATTACH.format(
+            blockdevice_id=blockdevice_id))
         self._host_ops.rescan_scsi()
 
     @logme(LOG)
@@ -624,4 +647,9 @@ class IBMStorageBlockDeviceAPI(object):
                 str(blockdevice_id), vol_name, e))
 
             raise UnattachedVolume(blockdevice_id)
-        return FilePath(device_path)
+        device_path_obj = FilePath(device_path)
+        LOG.info(messages.DRIVER_OPERATION_GET_MULTIPATH_DEVICE.format(
+            volname=vol_name, device_path=device_path_obj.path,
+            cmd=self._host_ops.multipath_cmd_ll))
+
+        return device_path_obj

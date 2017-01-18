@@ -50,17 +50,22 @@ class HostActions(object):
 
         # set required commands path
         self._rescan_cmd = self._find_rescan_cmd()
+        self._rescan_cmd_list = [self._rescan_cmd, "-r"]
 
         self._iscsiadm_cmd = find_executable(ISCSIADM_CMD)
+        self._iscsiadm_cmd_list = [
+            self._iscsiadm_cmd, "-m", "session", "--rescan"]
+
         if not self._iscsiadm_cmd:
-            LOG.debug(messages.NO_ISCSIADM_CMD_EXIST.format(
+            LOG.warn(messages.NO_ISCSIADM_CMD_EXIST.format(
                 cmd=ISCSIADM_CMD))
 
         self._multipath_cmd = find_executable(MULTIPATH_CMD)
+        self._multipath_cmd_list = [self._multipath_cmd, '-r']
         if not self._multipath_cmd:
             raise MultipathCmdNotFound(MULTIPATH_CMD)
 
-        self._multipath_cmd_ll = self._multipath_cmd + MULTIPATH_LIST_ARGS
+        self.multipath_cmd_ll = self._multipath_cmd + MULTIPATH_LIST_ARGS
 
     def check_out(self, cmd, cmd_list, msg, retries=0, wwn=None):
         """
@@ -97,7 +102,7 @@ class HostActions(object):
                 retries -= 1
 
     @logme(LOG)
-    def rescan_scsi(self, wwn=None, system_type=None):
+    def rescan_scsi(self, wwn=None):
         """
         Rescan SCSI bus - iscsi rescan, system rescan and multipath reload.
         This is needed for:
@@ -106,11 +111,15 @@ class HostActions(object):
             - Possible creation of volumes
         :return:none
         """
+
         if self._iscsiadm_cmd:
+            LOG.info(
+                messages.DRIVER_OPERATION_VOL_RESCAN_ISCSI.format(
+                    cmd=' '.join(self._iscsiadm_cmd_list)))
             try:
                 self.check_out(
                     self._iscsiadm_cmd,
-                    [self._iscsiadm_cmd, "-m", "session", "--rescan"],
+                    self._iscsiadm_cmd_list,
                     "iSCSI Rescanning the host")
             except CalledProcessError as e:
                 '''
@@ -122,23 +131,21 @@ class HostActions(object):
                     cmd=self._iscsiadm_cmd,
                     exception=e,
                 ))
-                pass
 
+        LOG.info(messages.DRIVER_OPERATION_VOL_RESCAN_OS.format(
+            cmd=' '.join(self._rescan_cmd_list)))
         self.check_out(
             self._rescan_cmd,
-            [self._rescan_cmd, "-r"],
+            self._rescan_cmd_list,
             "Rescanning the host")
 
+        LOG.info(messages.DRIVER_OPERATION_VOL_RESCAN_MULTIPATH.format(
+            cmd=' '.join(self._multipath_cmd_list)))
         self.check_out(
             self._multipath_cmd,
-            ["timeout",
-             TIMEOUT_FOR_MULTIPATH_CMD.__str__(),
-             self._multipath_cmd,
-             '-r'
-             ],
+            ["timeout", TIMEOUT_FOR_MULTIPATH_CMD.__str__()] +
+            self._multipath_cmd_list,
             "Multipath rescan", retries=3, wwn=wwn)
-
-        LOG.debug("Finish all rescans on the host")
 
     @classmethod
     def _find_rescan_cmd(cls):
@@ -201,9 +208,9 @@ class HostActions(object):
         :param vol_wwn:
         :return: str: the device path
         """
-        cmd_out = check_output([self._multipath_cmd_ll], shell=True)
+        cmd_out = check_output([self.multipath_cmd_ll], shell=True)
         LOG.debug("{multipath_cmd}   Out put : {output}".format(
-            multipath_cmd=self._multipath_cmd_ll, output=cmd_out))
+            multipath_cmd=self.multipath_cmd_ll, output=cmd_out))
 
         for line in cmd_out.split('\n'):
             line_match = re.search(
@@ -216,7 +223,7 @@ class HostActions(object):
                 return device
 
         LOG.error("device for vol_wwn {} not found in {}".format(
-            vol_wwn, self._multipath_cmd_ll))
+            vol_wwn, self.multipath_cmd_ll))
         return None
 
     @logme(LOG)
@@ -237,8 +244,6 @@ class HostActions(object):
             LOG.error("device path {} not found".format(device_fullpath))
             raise MultipathDeviceFilePathNotFound(device_fullpath)
 
-        LOG.debug(
-            "device {} found in multipath -ll".format(device_fullpath))
         return device_fullpath
 
     @logme(LOG)

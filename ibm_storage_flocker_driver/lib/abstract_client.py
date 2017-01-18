@@ -75,6 +75,7 @@ class VolInfo(object):
 class IBMStorageAbsClient(object):
     # TODO consider to use from zope.interface.Interface instead of abc
     __metaclass__ = abc.ABCMeta
+    backend_type = None
 
     @abc.abstractmethod
     def __init__(self, con_info):

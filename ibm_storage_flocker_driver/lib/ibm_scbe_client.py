@@ -218,7 +218,7 @@ class HostIdNotFoundByWwn(ExceptionSCBEClient):
 
 
 class IBMSCBEClientAPI(IBMStorageAbsClient):
-    system_type = messages.SCBE_STRING
+    backend_type = messages.SCBE_STRING
 
     def __init__(self, con_info):
         """
