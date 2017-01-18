@@ -108,7 +108,7 @@ dataset:
   username: "USERNAME"
   password: "PASSWORD"
   default_service: "SERVICE"
-  debug_level: "LEVEL"
+  log_level: "LEVEL"
 ```
 Replace the following values, according your environment:
 - **FLOCKER_CONTROL_NODE** = hostname or IP of the Flocker control node

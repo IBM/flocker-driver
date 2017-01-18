@@ -9,5 +9,5 @@ dataset:
   username: "USERNAME" # SCBE Flocker interface user
   password: "PASSWORD" # SCBE Flocker interface password
   default_service: "SERVICE" # Default SCBE storage service
-  debug_level: "LEVEL" # Optional (Default is INFO. For debug mode use DEBUG)
+  log_level: "LEVEL" # Optional (Default is INFO. For debug mode use DEBUG)
 
