@@ -108,6 +108,7 @@ dataset:
   username: "USERNAME"
   password: "PASSWORD"
   default_service: "SERVICE"
+  hostname: "HOSTNAME"
   log_level: "LEVEL"
 ```
 Replace the following values, according your environment:
@@ -118,6 +119,7 @@ Replace the following values, according your environment:
 - **USERNAME** = user name defined for SCBE Flocker interface
 - **PASSWORD** = password defined for SCBE Flocker interface
 - **SERVICE** = SCBE storage service to be used by default as the Flocker default profile
+- **HOSTNAME** = The defined host in to storage system. Its Optional (Default is the local hostname).
 - **LEVEL** = Optional (Default is INFO. For debug mode uses DEBUG)
 
 ## Running tests

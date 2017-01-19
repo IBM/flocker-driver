@@ -50,6 +50,8 @@ from ibm_storage_flocker_driver.lib.constants import (
     START_CLUSTER_HASHED_INDEX,
     VOL_NAME_FLOCKER_PREFIX,
     VOL_NAME_DELIMITER_CLUSTER_HASHED,
+    CONF_PARAM_DEFAULT_SERVICE,
+    CONF_PARAM_HOSTNAME,
 )
 
 LOG = config_logger(logging.getLogger(__name__))
@@ -70,14 +72,23 @@ def get_ibm_storage_backend_by_conf(cluster_id, conf_dict):
         connection_info, backend_type)
     LOG.setLevel(connection_info.debug_level)
 
-    # Verification
-    default_resource = conf_dict[u"default_service"]
+    # Get default resource and verify
+    default_resource = conf_dict.get(CONF_PARAM_DEFAULT_SERVICE)
     verify_default_service_exists(default_resource, client)
+
+    # Get hostname
+    hostname = conf_dict.get(CONF_PARAM_HOSTNAME)
+    hostname_aligned = unicode(hostname) if hostname else None
+
+    driver_conf = {
+        str(CONF_PARAM_DEFAULT_SERVICE): default_resource,
+        str(CONF_PARAM_HOSTNAME): hostname_aligned,
+    }
 
     return IBMStorageBlockDeviceAPI(
         backend_client=client,
         cluster_id=cluster_id,
-        storage_resource=default_resource,
+        driver_conf=driver_conf,
     )
 
 
@@ -250,20 +261,21 @@ class IBMStorageBlockDeviceAPI(object):
     """
 
     @logme(LOG)
-    def __init__(self, cluster_id, backend_client, storage_resource):
+    def __init__(self, cluster_id, backend_client, driver_conf):
         """
         Initialize new instance of the IBM Storage Flocker driver.
 
         :param backend_client: IBMStorageAbsClient
         :param UUID cluster_id: The Flocker cluster ID
-        :param storage_resource: The default resource for provisioning
+        :param driver_conf: dict with default resource to provision
+            and default hostname for attach\detach operations.
         :raises MultipathCmdNotFound, RescanCmdNotFound:
                 in case mandatory commands are missing
         """
         self._client = backend_client
         self._cluster_id = cluster_id
-        self._storage_resource = storage_resource
-        self._instance_id = self._get_host()
+        self._storage_resource = driver_conf[CONF_PARAM_DEFAULT_SERVICE]
+        self._instance_id = self._get_host(driver_conf)
         self._cluster_id_slug = uuid2slug(self._cluster_id)
         self._host_ops = HostActions(backend_client.con_info.debug_level)
         self._is_multipathing = self._host_ops.is_multipath_active()
@@ -274,8 +286,11 @@ class IBMStorageBlockDeviceAPI(object):
         ))
 
     @staticmethod
-    def _get_host():
-        return unicode(socket.gethostname())
+    def _get_host(driver_conf):
+        hostname = driver_conf[CONF_PARAM_HOSTNAME] or \
+            unicode(socket.gethostname())
+        LOG.debug(messages.HOSTNAME_TO_BE_USE.format(hostname=hostname))
+        return hostname
 
     def _get_volume(self, blockdevice_id):
         """

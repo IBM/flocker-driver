@@ -33,20 +33,24 @@ END_INDEX_DATASET_ID_IN_VOL_NAME = (
 DEFAULT_DEBUG_LEVEL = 'INFO'  # aka default log_level
 DEFAULT_SERVICE = '-DEFAULT-'
 DEFAULT_VERIFY_SSL = True
+
+CONF_PARAM_DEFAULT_SERVICE = u'default_service'
 MANDATORY_CONFIGURATIONS_IN_YML_FILE = {
     u"username",
     u"password",
     u"management_ip",
-    u"default_service"
+    CONF_PARAM_DEFAULT_SERVICE,
 }
 CONF_PARAM_PORT = u"management_port"
 CONF_PARAM_DEBUG = u"log_level"
 CONF_PARAM_BACKEND_TYPE = u"management_type"
 CONF_PARAM_VERIFY_SSL = u"verify_ssl_certificate"
+CONF_PARAM_HOSTNAME = u"hostname"
 OPTIONAL_CONFIGURATIONS_IN_YML_FILE = {
     CONF_PARAM_BACKEND_TYPE,
     CONF_PARAM_DEBUG,
     CONF_PARAM_VERIFY_SSL,
     CONF_PARAM_PORT,
+    CONF_PARAM_HOSTNAME,
 }
 CONF_PARAM_DEBUG_OPTIONS = ["DEBUG", "INFO", "WARN", "ERROR"]

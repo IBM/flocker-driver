@@ -91,7 +91,7 @@ NO_ISCSIADM_CMD_EXIST = \
 
 HOST_NOT_FOUND_BY_WWN = \
     "Host name [{host}] was not found on the storage system [{array}] that " \
-    "related to" \
+    "related to " \
     "volume with WWN [{wwn}]. (Hosts that were found [{list_result}]."
 
 HOST_NOT_FOUND_BY_VOLNAME = \
@@ -154,3 +154,7 @@ DRIVER_OPERATION_VOL_RESCAN_START_DETACH = \
 DRIVER_OPERATION_GET_MULTIPATH_DEVICE = \
     'The device path of volume [{volname}] is [{device_path}] ' \
     '(checked by {cmd}).'
+
+HOSTNAME_TO_BE_USE = \
+    'Hostname [{hostname}] to be used in attach and detach driver operations ' \
+    'on storage systems'
