@@ -116,7 +116,7 @@ EXCEPTION_NO_MANAGEMENT_TYPE_EXIST = \
 DRIVER_INITIALIZATION = \
     PACKAGE_FORMAL_DESCRIPTION + ' is up and running.' \
     ' Plugin initialized with {backend_type} IP {backend_ip} ' \
-    'and user name {username}'
+    'and user name {username}.'
 
 DRIVER_OPERATION_VOL_CREATE_WITH_PROFILE = \
     "Created a volume name {name}, size={size}, profile={profile}, WWN={wwn}"
@@ -126,13 +126,13 @@ DRIVER_OPERATION_VOL_DESTROY = \
 
 DRIVER_OPERATION_VOL_CREATING = \
     "Creating a volume dataset_id={dataset_id}, size={size}, " \
-    "on the default profile {default_profile}"
+    "on the default profile {default_profile}."
 
 DRIVER_OPERATION_VOL_ATTACH = \
-    "Attached volume WWN {blockdevice_id} to host {attach_to}"
+    "Attached volume WWN {blockdevice_id} to host {attach_to}."
 
 DRIVER_OPERATION_VOL_DETTACH = \
-    "Detached volume WWN {blockdevice_id} from host {attach_to}"
+    "Detached volume WWN {blockdevice_id} from host {attach_to}."
 
 DRIVER_OPERATION_VOL_RESCAN_ISCSI = \
     'RESCAN: Executing OS iSCSI rescan: {cmd}'
@@ -145,16 +145,20 @@ DRIVER_OPERATION_VOL_RESCAN_MULTIPATH = \
 
 DRIVER_OPERATION_VOL_RESCAN_START_ATTACH = \
     'RESCAN: Executing rescan commands to discover device for ' \
-    'WWN [{blockdevice_id}]'
+    'WWN [{blockdevice_id}].'
 
 DRIVER_OPERATION_VOL_RESCAN_START_DETACH = \
     'RESCAN: Executing rescan commands to clean device of ' \
-    'WWN [{blockdevice_id}]'
+    'WWN [{blockdevice_id}].'
 
 DRIVER_OPERATION_GET_MULTIPATH_DEVICE = \
     'The device path of volume [{volname}] is [{device_path}] ' \
     '(checked by {cmd}).'
 
 HOSTNAME_TO_BE_USE = \
-    'Hostname [{hostname}] to be used in attach and detach driver operations ' \
-    'on storage systems'
+    'Hostname [{hostname}] to be used in attach and detach driver' \
+    ' operations on storage systems.'
+
+INIT_CLIENT = 'Login to {backend} IP address {ip}.'
+
+HTTP_REQUEST_DEBUG = 'HTTP {action} request to {url} {payload}'

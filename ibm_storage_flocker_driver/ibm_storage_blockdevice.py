@@ -28,9 +28,10 @@ from flocker.node.agents.blockdevice import (
     UnknownVolume,
     UnattachedVolume,
 )
-from lib.host_actions import HostActions
-from lib import host_actions
-from ibm_storage_flocker_driver.lib import messages
+from ibm_storage_flocker_driver.lib.host_actions import HostActions
+from ibm_storage_flocker_driver.lib import (
+    host_actions, messages,
+)
 from ibm_storage_flocker_driver.lib.abstract_client import (
     ConnectionInfo,
     BackendAPIClientFactory,
@@ -268,7 +269,7 @@ class IBMStorageBlockDeviceAPI(object):
         :param backend_client: IBMStorageAbsClient
         :param UUID cluster_id: The Flocker cluster ID
         :param driver_conf: dict with default resource to provision
-            and default hostname for attach\detach operations.
+            and default hostname for attach / detach operations.
         :raises MultipathCmdNotFound, RescanCmdNotFound:
                 in case mandatory commands are missing
         """

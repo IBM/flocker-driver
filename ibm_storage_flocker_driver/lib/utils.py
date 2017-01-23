@@ -22,7 +22,8 @@ from ibm_storage_flocker_driver.lib.constants import DEFAULT_DEBUG_LEVEL
 
 def logme(logger, prefix=None, level=logging.DEBUG):
     """
-    Decorator for logging functions with args\kwargs and return value
+    Decorator for logging functions with args, kwargs and return value
+
     :param logger: Log to use
     :param prefix: Prefix if any
     :param level: Log level

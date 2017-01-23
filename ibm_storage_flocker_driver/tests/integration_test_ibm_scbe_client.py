@@ -15,8 +15,8 @@
 ##############################################################################
 
 import unittest
-from nose.plugins.attrib import attr
 import os
+from nose.plugins.attrib import attr
 from ibm_storage_flocker_driver.lib.abstract_client import ConnectionInfo
 from ibm_storage_flocker_driver.lib import ibm_scbe_client
 from ibm_storage_flocker_driver.lib.constants import DEFAULT_DEBUG_LEVEL
@@ -42,6 +42,7 @@ class IntegrationTestSCBEClient(unittest.TestCase):
         for env in MANDATORIES_ENV:
             if env not in os.environ:
                 raise Exception('env {} is mandatory'.format(env))
+        self.vol = None
 
     @attr('integration')
     def integ_test_basic_flow(self):

@@ -19,7 +19,7 @@ from bitmath import GiB, MiB
 from flocker.node.agents.test.test_blockdevice import (
     make_iblockdeviceapi_tests,
 )
-from testtools_ibm_storage_flocker_driver import \
+from ibm_storage_flocker_driver.testtools_ibm_storage_flocker_driver import \
     get_ibm_storage_blockdevice_api_for_test
 
 # Smallest volume to create in tests

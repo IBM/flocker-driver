@@ -14,12 +14,12 @@
 # limitations under the License.
 ##############################################################################
 
+import codecs  # To use a consistent encoding
+from setuptools import setup, find_packages
 from ibm_storage_flocker_driver.lib.messages import (
     PACKAGE_FORMAL_DESCRIPTION,
     PACKAGE_FORMAL_KEYWORDS,
 )
-from setuptools import setup, find_packages
-import codecs  # To use a consistent encoding
 
 with codecs.open('DESCRIPTION.rst', encoding='utf-8') as description:
     long_description = description.read()

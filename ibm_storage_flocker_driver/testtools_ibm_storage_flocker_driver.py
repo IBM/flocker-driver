@@ -15,13 +15,13 @@
 ##############################################################################
 
 import os
+import logging
+import yaml
 from twisted.trial.unittest import SkipTest
-from ibm_storage_blockdevice import (
+from ibm_storage_flocker_driver.ibm_storage_blockdevice import (
     get_ibm_storage_backend_by_conf,
 )
 from ibm_storage_flocker_driver.lib import messages
-import yaml
-import logging
 from ibm_storage_flocker_driver.lib.utils import config_logger
 
 LOG = config_logger(logging.getLogger(__name__))
@@ -47,6 +47,8 @@ def detach_destroy_all_volumes(api):
     :param : Driver API object
     """
     volumes = api.list_volumes()
+
+    # pylint: disable=W0212
     msg = 'detach_destroy_all_volumes : ' \
           'cluster id [{}] has [{}] volumes : {}'.\
         format(
@@ -71,6 +73,8 @@ def get_ibm_storage_blockdevice_api_for_test(cluster_id, test_case):
     :returns: A ``IBMStorageBlockDeviceAPI`` instance
     """
     api = get_ibm_storage_backend_from_environment(cluster_id)
+
+    # pylint: disable=W0212
     LOG.setLevel(api._client.con_info.debug_level)
     test_case.addCleanup(detach_destroy_all_volumes, api)
 

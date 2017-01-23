@@ -14,16 +14,16 @@
 # limitations under the License.
 ##############################################################################
 
-import requests
 import json
-from bitmath import MiB
+import logging
 from functools import wraps
+import requests
+from bitmath import MiB
 from ibm_storage_flocker_driver.lib import messages
 from ibm_storage_flocker_driver.lib.abstract_client import (
     IBMStorageAbsClient, VolInfo, CreateVolumeError,
 )
 from ibm_storage_flocker_driver.ibm_storage_blockdevice import DEFAULT_SERVICE
-import logging
 from ibm_storage_flocker_driver.lib.utils import logme, config_logger
 
 LOG = config_logger(logging.getLogger(__name__))
@@ -45,6 +45,34 @@ class RestClientException(Exception):
     """
     Use for every REST API response with unexpected exit status
     """
+
+
+def _retry_if_token_expire(func):
+    @wraps(func)
+    def wrapped(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except RestClientException as e:
+            response = e.args[0]
+            if response.status_code == \
+                    self.HTTP_EXIT_STATUS['UNAUTHORIZED']:
+
+                LOG.debug(
+                    messages.RAISED_UNAUTHORIZED_SO_RELOGIN_TO_GET_TOKEN.
+                    format(func_name=func.__name__,
+                           exception=e,
+                           reason=getattr(response, 'reason', ''),
+                           content=getattr(response, 'content', '')))
+
+                # Get new token
+                self.get_token_and_update_header()
+
+                # Run again the same REST API
+                return func(self, *args, **kwargs)
+            else:
+                raise
+
+    return wrapped
 
 
 class RestClient(object):
@@ -80,33 +108,6 @@ class RestClient(object):
 
         self.get_token_and_update_header()
 
-    def _retry_if_token_expire(func):
-        @wraps(func)
-        def wrapped(self, *args, **kwargs):
-            try:
-                return func(self, *args, **kwargs)
-            except RestClientException as e:
-                response = e.args[0]
-                if response.status_code == \
-                        self.HTTP_EXIT_STATUS['UNAUTHORIZED']:
-
-                    LOG.debug(
-                        messages.RAISED_UNAUTHORIZED_SO_RELOGIN_TO_GET_TOKEN.
-                        format(func_name=func.__name__,
-                               exception=e,
-                               reason=getattr(response, 'reason', ''),
-                               content=getattr(response, 'content', '')))
-
-                    # Get new token
-                    self.get_token_and_update_header()
-
-                    # Run again the same REST API
-                    return func(self, *args, **kwargs)
-                else:
-                    raise
-
-        return wrapped
-
     def _generic_action(self, action, resource_url, payload=None,
                         exit_status=None):
         """
@@ -120,7 +121,8 @@ class RestClient(object):
         """
         payload_json = json.dumps(payload)
         url = self.base_url + resource_url
-        LOG.debug('http {} request to {} {}'.format(action, url, payload))
+        LOG.debug(messages.HTTP_REQUEST_DEBUG.format(
+            action=action, url=url, payload=payload))
         response = getattr(self.session, action)(url, data=payload_json)
         self.verify_status_code(response, exit_status, action)
         return response
@@ -203,7 +205,7 @@ class VolumeNotFound(ExceptionSCBEClient):
 
 class HostIDNotFound(ExceptionSCBEClient):
     def __init__(self, host_id, wwn):
-        Exception.__init__(
+        super(HostIDNotFound, self).__init__(
             self,
             messages.HOST_NOT_FOUND_BY_VOLNAME.format(
                 host_id, wwn),
@@ -212,7 +214,7 @@ class HostIDNotFound(ExceptionSCBEClient):
 
 class HostIdNotFoundByWwn(ExceptionSCBEClient):
     def __init__(self, wwn, host, array, list_result):
-        Exception.__init__(
+        super(HostIdNotFoundByWwn, self).__init__(
             self,
             messages.HOST_NOT_FOUND_BY_WWN.format(
                 wwn=wwn, host=host, array=array, list_result=list_result),
@@ -228,7 +230,6 @@ class IBMSCBEClientAPI(IBMStorageAbsClient):
         for IBM Flocker driver
         :param con_info: ConnectionInfo
         """
-        super(IBMStorageAbsClient, self).__init__()
         self.con_info = self._set_defaults_for_con_info(con_info)
         LOG.setLevel(con_info.debug_level)
 
@@ -243,8 +244,9 @@ class IBMSCBEClientAPI(IBMStorageAbsClient):
         self._client = RestClient(
             self.con_info, base_url, URL_SCBE_RESOURCE_GET_AUTH, referer,
         )
-        LOG.debug('Login to {} {}'.format(
-            messages.SCBE_STRING, self.con_info.management_ip))
+        LOG.debug(
+            messages.INIT_CLIENT.format(backend=messages.SCBE_STRING,
+                                        ip=self.con_info.management_ip))
 
     @staticmethod
     def _set_defaults_for_con_info(con_info):
@@ -325,7 +327,7 @@ class IBMSCBEClientAPI(IBMStorageAbsClient):
     def map_volume(self, wwn, host, lun=None):
         """
         map volume to host with given LUN
-        (if lun not given find the next available LUNCkwif3h4a89hfitRwo-@2kwif3h4a89hf of the host)
+        (if lun not given find the next available LUN of the host)
         :param wwn: The WWN of the volume to map
         :param host: The host name in the storage system for mapping
         :param lun: LUN for mapping,

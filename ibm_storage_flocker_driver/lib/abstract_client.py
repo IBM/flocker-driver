@@ -16,7 +16,7 @@
 
 import abc
 import pkgutil
-import messages
+from ibm_storage_flocker_driver.lib import messages
 
 class ExceptionStorageClient(Exception):
     pass
@@ -27,6 +27,7 @@ class CreateVolumeError(ExceptionStorageClient):
 
 
 class ConnectionInfo(object):
+    # pylint: disable=too-many-arguments
 
     def __init__(self, management_ip, username, password, port=None,
                  verify_ssl=None, debug_level=None):
@@ -76,13 +77,6 @@ class IBMStorageAbsClient(object):
     # TODO consider to use from zope.interface.Interface instead of abc
     __metaclass__ = abc.ABCMeta
     backend_type = None
-
-    @abc.abstractmethod
-    def __init__(self, con_info):
-        """
-        :param con_info: ConnectionInfo
-        """
-        raise NotImplementedError
 
     @abc.abstractmethod
     def create_volume(self, vol, resource, size):

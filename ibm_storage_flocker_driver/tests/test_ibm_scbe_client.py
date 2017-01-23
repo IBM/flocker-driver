@@ -76,6 +76,7 @@ MAPPING_RESPONSE_SAMPLE = """
 u'lun_number': 1, u'host': 331, u'id': 845}]}
 """
 
+
 class VolGetFakeRespond(object):
 
     def __init__(self, content, status_code):
@@ -106,12 +107,15 @@ class TestsRESTClientGetPostFuncs(unittest.TestCase):
     Unit testing for RestClient class
     """
 
-    @patch('ibm_storage_flocker_driver.lib.ibm_scbe_client.requests')
-    @patch(GET_TOKEN_FUNC)
-    def setUp(self, requests_mock, get_token_mock):
-        get_token_mock.return_value = 'FAKE TOKEN'
-        self.r = RestClient(
-            FAKE_MNG_INFO, base_url='', auth_url='', referer='referer')
+    # pylint: disable=W0212
+
+    def setUp(self):
+        with patch('ibm_storage_flocker_driver.'
+                   'lib.ibm_scbe_client.requests'), patch(GET_TOKEN_FUNC) as \
+                get_token_mock:
+            get_token_mock.return_value = 'FAKE TOKEN'
+            self.r = RestClient(
+                FAKE_MNG_INFO, base_url='', auth_url='', referer='referer')
 
     def test_client__generic_action(self):
         self.r._generic_action(action='get', resource_url='/url', payload=None)
@@ -137,11 +141,8 @@ class TestsRESTClientGetPostFuncs(unittest.TestCase):
     def test_client__get_bad_status_code(self):
         self.r.session.get = MagicMock(
             return_value=VolGetFakeRespond(FAKE_VOL_CONTENT, 201))
-        self.assertRaises(RestClientException,
-                          self.r.get,
-                          resource_url='/url',
-                          payload=None,
-                          )
+        with self.assertRaises(RestClientException):
+            self.r.get(resource_url='/url', payload=None)
         try:
             # just double check, if it raises the right exception
             self.r.get(resource_url='/url', payload=None)
@@ -172,9 +173,8 @@ class TestsRESTClientTokenExpire(unittest.TestCase):
     Unit testing for RestClient class (Token Expiration)
     """
 
-    @patch('ibm_storage_flocker_driver.lib.ibm_scbe_client.requests')
     @patch(GET_TOKEN_FUNC)
-    def test_token_expire__get(self, requests_mock, get_token_mock):
+    def test_token_expire__get(self, get_token_mock):
         get_token_mock.return_value = 'FAKE TOKEN'
         r = RestClient(FAKE_MNG_INFO, base_url='', auth_url='',
                        referer='referer')
@@ -187,10 +187,8 @@ class TestsRESTClientTokenExpire(unittest.TestCase):
         ]
         r.get(resource_url='/url', payload=None)
 
-    @patch('ibm_storage_flocker_driver.lib.ibm_scbe_client.requests')
     @patch(GET_TOKEN_FUNC)
-    def test_token_expire__get_second_also_fail(
-            self, requests_mock, get_token_mock):
+    def test_token_expire__get_second_also_fail(self, get_token_mock):
         get_token_mock.return_value = 'FAKE TOKEN'
         r = RestClient(FAKE_MNG_INFO, base_url='', auth_url='',
                        referer='referer')
@@ -200,13 +198,11 @@ class TestsRESTClientTokenExpire(unittest.TestCase):
                               RestClient.HTTP_EXIT_STATUS['UNAUTHORIZED']),
             VolGetFakeRespond('fake, second time gets fail error', 666),
         ]
-        self.assertRaises(
-            RestClientException, r.get, resource_url='/url', payload=None
-        )
+        with self.assertRaises(RestClientException):
+            r.get(resource_url='/url', payload=None)
 
-    @patch('ibm_storage_flocker_driver.lib.ibm_scbe_client.requests')
     @patch(GET_TOKEN_FUNC)
-    def test_token_expire__delete(self, requests_mock, get_token_mock):
+    def test_token_expire__delete(self, get_token_mock):
         get_token_mock.return_value = 'FAKE TOKEN'
         r = RestClient(FAKE_MNG_INFO, base_url='', auth_url='',
                        referer='referer')
@@ -219,9 +215,8 @@ class TestsRESTClientTokenExpire(unittest.TestCase):
         ]
         r.delete(resource_url='/url', payload=None)
 
-    @patch('ibm_storage_flocker_driver.lib.ibm_scbe_client.requests')
     @patch(GET_TOKEN_FUNC)
-    def test_token_expire__post(self, requests_mock, get_token_mock):
+    def test_token_expire__post(self, get_token_mock):
         get_token_mock.return_value = 'FAKE TOKEN'
         r = RestClient(FAKE_MNG_INFO, base_url='', auth_url='',
                        referer='referer')
@@ -241,27 +236,28 @@ FAKE_MNG_INFO = ConnectionInfo(
 )
 
 FAKE_SERVICE_NAME = 'service_name_1'
-FAKE_SERVICES_OUT_PUT = [{
-    "id": "145d5b94-d573-45da-abac-6d625cc6970d",
-    "unique_identifier": "145d5b94-d573-45da-abac-6d625cc6970d",
-    "name": FAKE_SERVICE_NAME,
-    "description": " ",
-    "container": "5bba448a-6b9a-4d91-a369-758194a88c42",
-    "capability_values": "7",
-    "type": "regular",
-    "physical_size": 516822138880,
-    "logical_size": 516822138880,
-    "physical_free": 103364427776,
-    "logical_free": 103364427776,
-    "total_capacity": 516822138880,
-    "used_capacity": 413457711104,
-    "max_resource_logical_free": 103364427776,
-    "max_resource_free_size_for_provisioning": 103364427776,
-    "num_volumes": 2,
-    "has_admin": True,
-    "qos_max_iops": 0,
-    "qos_max_mbps": 0
-},
+FAKE_SERVICES_OUT_PUT = [
+    {
+        "id": "145d5b94-d573-45da-abac-6d625cc6970d",
+        "unique_identifier": "145d5b94-d573-45da-abac-6d625cc6970d",
+        "name": FAKE_SERVICE_NAME,
+        "description": " ",
+        "container": "5bba448a-6b9a-4d91-a369-758194a88c42",
+        "capability_values": "7",
+        "type": "regular",
+        "physical_size": 516822138880,
+        "logical_size": 516822138880,
+        "physical_free": 103364427776,
+        "logical_free": 103364427776,
+        "total_capacity": 516822138880,
+        "used_capacity": 413457711104,
+        "max_resource_logical_free": 103364427776,
+        "max_resource_free_size_for_provisioning": 103364427776,
+        "num_volumes": 2,
+        "has_admin": True,
+        "qos_max_iops": 0,
+        "qos_max_mbps": 0
+    },
 ]
 
 FAKE_VOL_WWN = 'YYYYY'
@@ -335,9 +331,11 @@ class TestsSCBEClient(unittest.TestCase):
     Unit testing for IBMSCBEClientAPI class
     """
 
-    @patch(_RESTCLIENT_PATH)
-    def setUp(self, restclient_mock):
-        self.client = IBMSCBEClientAPI(FAKE_MNG_INFO)
+    # pylint: disable=W0212
+
+    def setUp(self):
+        with patch(_RESTCLIENT_PATH):
+            self.client = IBMSCBEClientAPI(FAKE_MNG_INFO)
 
     def test_client_init(self):
         self.assertEqual(
@@ -374,9 +372,8 @@ class TestsSCBEClient(unittest.TestCase):
 
         self.client.list_volumes = MagicMock(return_value=[fake_volinfo])
         self.client._host_list = MagicMock(return_value=None)
-        self.assertRaises(
-            HostIdNotFoundByWwn, self.client._get_host_id_by_vol,
-            'WWN', 'HOST')
+        with self.assertRaises(HostIdNotFoundByWwn):
+            self.client._get_host_id_by_vol('WWN', 'HOST')
 
     def test_get_vols_mapping(self):
         get_vols_mapping_fake = [
@@ -414,7 +411,6 @@ class TestsSCBEClient(unittest.TestCase):
             }
 
         ]
-
         self.client._client.get = MagicMock(
             return_value=get_hosts_fake)
         _expect = {HOST_ID: FAKE_HOST, HOST2_ID: FAKE_HOST + '1'}

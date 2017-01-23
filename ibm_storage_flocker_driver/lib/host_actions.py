@@ -67,6 +67,7 @@ class HostActions(object):
 
         self.multipath_cmd_ll = self._multipath_cmd + MULTIPATH_LIST_ARGS
 
+    # pylint: disable=too-many-arguments
     def check_out(self, cmd, cmd_list, msg, retries=0, wwn=None):
         """
         Execute check_output function and wrap it with retry flow
@@ -95,10 +96,10 @@ class HostActions(object):
                 if retries == 0:
                     raise
                 if wwn and self._get_multipath_device_native(wwn):
-                    LOG.error("Stop retry because the wanted wwn (%s) "
-                              "found in the %s" % (wwn, cmd))
+                    LOG.error("Stop retry because the wanted wwn"
+                              " ({}) found in the {}".format(wwn, cmd))
                     break
-                LOG.error("let try again to run the command %s" % cmd)
+                LOG.error("let try again to run the command {}".format(cmd))
                 retries -= 1
 
     @logme(LOG)
@@ -271,12 +272,12 @@ class HostActions(object):
                 out = check_output(cmd, shell=True)
                 LOG.debug("cmd {} output : {}".format(cmd, out))
                 return out
-            except Exception as e:
-                LOG.error("%s: error, %s  (retries %s of %s)" % (
+            except CalledProcessError as e:
+                LOG.error("{}: error, {}  (retries {} of {})".format(
                     cmd, str(e), max_retries - retries, max_retries))
                 if retries == 0:
                     raise
-                LOG.error("let try again to run the command %s" % cmd)
+                LOG.error("let try again to run the command {}".format(cmd))
                 retries -= 1
 
 

@@ -120,8 +120,8 @@ class TestHostActions(unittest.TestCase):
         check_output_mock.return_value = MULTIPATH_OUTPUT
         ospathexist.return_value = True
         hostops = HostActions()
-        self.assertRaises(MultipathDeviceNotFound,
-                          hostops.get_multipath_device, 'fake-vol-wwn')
+        with self.assertRaises(MultipathDeviceNotFound):
+            hostops.get_multipath_device('fake-vol-wwn')
 
     @patch('ibm_storage_flocker_driver.lib.host_actions.check_output')
     def test_rescan(self, check_output_mock):
@@ -132,9 +132,11 @@ class TestHostActions(unittest.TestCase):
     @patch('ibm_storage_flocker_driver.lib.host_actions.find_executable')
     def test_no_rescaan_cmd_exist(self, find_executable):
         find_executable.side_effect = [None, None]
-        self.assertRaises(RescanCmdNotFound, HostActions)
+        with self.assertRaises(RescanCmdNotFound):
+            HostActions()
 
     @patch('ibm_storage_flocker_driver.lib.host_actions.find_executable')
     def test_no_multipath_exist(self, find_executable):
         find_executable.side_effect = [None, 'rescan', 'iscsiadm', None]
-        self.assertRaises(MultipathCmdNotFound, HostActions)
+        with self.assertRaises(MultipathCmdNotFound):
+            HostActions()
