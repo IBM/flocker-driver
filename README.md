@@ -7,7 +7,7 @@ This block storage plug-in (driver) for Flocker enables the following IBM storag
    - XIV
 - IBM FlashSystem V9000
 
-It is certified for Flocker 1.15.0, Docker 12, RHEL 7.2 and IBM Spectrum Control Base Edition 3.2.0 Beta. 
+It is certified for Flocker 1.15.0, Docker 12, RHEL 7.2 and IBM Spectrum Control Base Edition (SCBE) 3.2.0 Beta. 
 
 ## Overview
 
@@ -73,7 +73,7 @@ The plug-in supports FC or iSCSI connectivity to the storage systems.
     multipath -ll  # Make sure no error appear.
    ```
 
-- Verify that the hostname of the Flocker node is defined on the relevant storage systems with the valid WWPNs or IQN of the node.
+- Verify that the hostname of the Flocker node or the hostname configured in the agent.yml file is defined on the relevant storage systems with the valid WWPNs or IQN of the node.
 
 - For iSCSI - Discover and login to the iSCSI targets of the relevant storage systems:
     * Discover iSCSI targets of the storage systems portal on the host
@@ -113,14 +113,14 @@ dataset:
 ```
 Replace the following values, according your environment:
 - **FLOCKER_CONTROL_NODE** = hostname or IP of the Flocker control node
-- **SCBE_IP** = hostname or IP of IBM Spectrum Control Base Edition (SCBE)
-- **SCBE_PORT** = Optional (default port is 8440)
+- **SCBE_IP** = SCBE server IP or FQDN 
+- **SCBE_PORT** = SCBE server port. This setting is optional (default port is 8440).
 - **Boolean** = True verifies SCB SSL certificate or False ignores the certificate (default is True)
 - **USERNAME** = user name defined for SCBE Flocker interface
 - **PASSWORD** = password defined for SCBE Flocker interface
 - **SERVICE** = SCBE storage service to be used by default as the Flocker default profile
-- **HOSTNAME** = The defined host in to storage system. Its Optional (Default is the local hostname).
-- **LEVEL** = Optional (Default is INFO. For debug mode uses DEBUG)
+- **HOSTNAME** = The host defined on the storage system. This setting is optional (default is Flocker node hostname).
+- **LEVEL** = Log level for the plug-in. This setting is optional (default is INFO). For debugging, use DEBUG. 
 
 ## Running tests
 - To verify the plug-in installation, set up the configuration file, as explained below. Change the values according to your environment.
@@ -131,25 +131,19 @@ Replace the following values, according your environment:
     ibm:
       management_ip: "SCBE IP"
       management_port: "SCBE PORT"
-      verify_ssl_certificate: True
+      verify_ssl_certificate: "Boolean"
       username: "USERNAME"
       password: "PASSWORD"
       default_service: "SERVICE"
+      hostname: "HOSTNAME"
+      log_level: "LEVEL"
     ```
 
 - Run the tests
     ```bash
     sudo /opt/flocker/bin/trial  test_ibm_storage_flocker_driver
     ```
-    
 
-## Future
-- Support for additional IBM Spectrum Virtualize Family products:
-    *  IBM SAN Volume Controller
-    *  IBM Storewize Family
-- Support iSCSI CHAP
-- Support NPIV
-- More useful goodies
 
 ## Contribution
 Create a fork of the project into your own repository. Make all necessary changes, create a pull request with a description on what was added or removed, provide details on code changes. If the changes are approved, project owners will merge it.
