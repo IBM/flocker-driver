@@ -29,7 +29,7 @@ with open("requirements.txt") as requirements:
 
 setup(
     name='ibm_storage_flocker_driver',
-    version='1.0.0',
+    version='1.0.1',
     description=PACKAGE_FORMAL_DESCRIPTION,
     long_description=long_description,
     author='Shay Berman',
@@ -38,7 +38,7 @@ setup(
     license='Apache 2.0',
 
     classifiers=[
-        'Development Status :: Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: System Administrators',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries :: Python Modules',
