@@ -7,7 +7,7 @@ This block storage plug-in (driver) for Flocker enables the following IBM storag
    - XIV
 - IBM FlashSystem V9000
 
-It is certified for Flocker 1.15.0, Docker 12, RHEL 7.2 and IBM Spectrum Control Base Edition (SCBE) 3.2.0 Beta. 
+It is certified for Flocker 1.15.0, Docker 12, RHEL 7.2 and IBM Spectrum Control Base Edition (SCBE) 3.2.0.
 
 ## Overview
 
@@ -18,7 +18,7 @@ Typically, Docker data volumes are tied to a single server. However, when Flocke
 The following components are required before using the plug-in:
 
 1. Install Flocker.
-2. Install and configure Beta release of IBM Spectrum Control Base Edition 3.2.0.
+2. Install and configure IBM Spectrum Control Base Edition.
 3. Configure storage connectivity and multipathing.
 
 **1. Install Flocker**
@@ -27,15 +27,14 @@ See the instructions on how to install Flocker on your nodes at [Flocker](https:
 
 **2. Installing and configuring IBM Spectrum Control Base Edition**
 
-The IBM Storage plug-in for Flocker communicates with the IBM storage systems through IBM Spectrum Control Base Edition 3.2.0 Beta (the GA version will be available soon).
-
-To participate in the IBM Spectrum Control Base Edition 3.2.0 Beta program, send email to bshay@il.ibm.com or contact your IBM representative. See [IBM Knowledge Center](http://www.ibm.com/support/knowledgecenter/STWMS9/landing/IBM_Spectrum_Control_Base_Edition_welcome_page.html) for general instructions on how install and configure Spectrum Control Base Edition software.
+The IBM Storage plug-in for Flocker communicates with the IBM storage systems through IBM Spectrum Control Base Edition 3.2.0 or later.
+See [IBM Knowledge Center](http://www.ibm.com/support/knowledgecenter/STWMS9/landing/IBM_Spectrum_Control_Base_Edition_welcome_page.html) for instructions on how download, install and configure Spectrum Control Base Edition software.
 
 After IBM Spectrum Control Base Edition is installed, do the following :
 * Log into Spectrum Control Base Edition server at https://SCBE_IP_address:8440.
 * Add a Flocker interface. Note: The Flocker interface username and the password will be used later, when creating and editing the agent.yml file.
 * Add the IBM storage systems to be used with the Flocker plug-in.
-* Create a single or multiple services with required storage capacities and capabilities.
+* Create storage service(s) with required storage capacities and capabilities.
 * Delegate at least one storage service to the Flocker interface.
 
 **3. Configuring storage connectivity and multipathing**
