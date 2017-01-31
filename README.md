@@ -9,6 +9,9 @@ This block storage plug-in (driver) for Flocker enables the following IBM storag
 
 It is certified for Flocker 1.15.0, Docker 12, RHEL 7.2 and IBM Spectrum Control Base Edition (SCBE) 3.2.0.
 
+## IBM Storage Plug-in for Flocker diagram
+![ibm_storage_flocker_diagram](ibm_storage_flocker_diagram.jpg)
+
 ## Overview
 
 Flocker is an open-source container data volume manager for your dockerized applications.
