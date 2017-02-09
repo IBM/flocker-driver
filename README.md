@@ -1,13 +1,13 @@
 IBM Storage Plug-in for Flocker
 ======================
-This block storage plug-in (driver) for Flocker enables the following IBM storage systems to be used for persistent Docker containers:
+This block storage plug-in (driver) for Flocker enables IBM storage systems to be used for persistent Docker containers.
+The plug-in is provided as is. It is an experimental feature that can be used in development and testing environments.
+The driver is certified for Flocker 1.15.0, Docker 12, RHEL 7.2 and IBM Spectrum Control Base Edition (SCBE) 3.2.0, supporting the following storage systems :
 - IBM Spectrum Accelerate Family products:
-   - FlashSystem A9000\A9000R
+   - FlashSystem A9000/A9000R
    - Spectrum Accelerate
    - XIV
 - IBM FlashSystem V9000
-
-It is certified for Flocker 1.15.0, Docker 12, RHEL 7.2 and IBM Spectrum Control Base Edition (SCBE) 3.2.0.
 
 ## IBM Storage Plug-in for Flocker diagram
 ![ibm_storage_flocker_diagram](ibm_storage_flocker_diagram.jpg)
