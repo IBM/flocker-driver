@@ -7,7 +7,10 @@ The driver is certified for Flocker 1.15.0, Docker 12, RHEL 7.2 and IBM Spectrum
    - FlashSystem A9000/A9000R
    - Spectrum Accelerate
    - XIV
-- IBM FlashSystem V9000
+- IBM Spectrum Virtualize Family products:
+   - IBM SAN Volume Controller
+   - IBM Storewize Family
+   - IBM FlashSystem V9000
 
 ## IBM Storage Plug-in for Flocker diagram
 ![ibm_storage_flocker_diagram](ibm_storage_flocker_diagram.jpg)
@@ -83,7 +86,7 @@ The plug-in supports FC or iSCSI connectivity to the storage systems.
        ```bash
           iscsiadm -m discoverydb -t st -p ${Storage System iSCSI Portal IP}:3260 --discover
        ```
-    * Log in to iSCSI ports. You must define at least two iSCSI ports per storage system to achieve multipathing.
+    * Log in to iSCSI ports. You must have at least two communication paths from your host to the storage system to achieve multipathing.
     
        ```bash
           iscsiadm -m node  -p ${storage system iSCSI portal IP/hostname} --login
