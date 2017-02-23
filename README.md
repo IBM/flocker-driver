@@ -40,7 +40,7 @@ After IBM Spectrum Control Base Edition is installed, do the following :
 * Log into Spectrum Control Base Edition server at https://SCBE_IP_address:8440.
 * Add a Flocker interface. Note: The Flocker interface username and the password will be used later, when creating and editing the agent.yml file.
 * Add the IBM storage systems to be used with the Flocker plug-in.
-* Create storage service(s) with required storage capacities and capabilities.
+* Create storage service(s) with required storage capacities and capabilities. This service(s) will be avilable as a Flocker profile on the Flocker nodes.
 * Delegate at least one storage service to the Flocker interface.
 
 **3. Configuring storage connectivity and multipathing**
@@ -126,6 +126,16 @@ Replace the following values, according your environment:
 - **SERVICE** = SCBE storage service to be used by default as the Flocker default profile
 - **HOSTNAME** = The host defined on the storage system. This setting is optional (default is Flocker node hostname).
 - **LEVEL** = Log level for the plug-in. This setting is optional (default is INFO). For debugging, use DEBUG. 
+
+## Docker command examples
+* Create a 10 GB volume "volume_1" based on SCBE storage service named "gold" by running the following command: 
+```bash
+    docker volume create --driver=flocker --name volume_1 --opt profile=gold --opt size=10g
+```
+* Launch container "container_1" with volume "volume_1" to be mounted in the /data path of the Docker container, using Docker image "ubuntu" by running the following command. If the specified volume does not exist, the Flocker driver creates it on the SCBE service defined in the agent.yml file, as "default_service".
+```bash
+    docker run --volume-driver flocker -v volume_1:/data --name container_1 -it ubuntu bash
+```
 
 ## Running tests
 - To verify the plug-in installation, set up the configuration file, as explained below. Change the values according to your environment.
