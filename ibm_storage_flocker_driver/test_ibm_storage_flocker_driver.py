@@ -22,6 +22,11 @@ from flocker.node.agents.test.test_blockdevice import (
 from ibm_storage_flocker_driver.testtools_ibm_storage_flocker_driver import \
     get_ibm_storage_blockdevice_api_for_test
 
+try:
+    unicode        # Python2
+except NameError:
+    unicode = str  # Python 3
+
 # Smallest volume to create in tests
 MIN_ALLOCATION_SIZE = int(GiB(1).to_Byte().value)
 
