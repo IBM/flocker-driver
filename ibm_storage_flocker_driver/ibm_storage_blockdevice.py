@@ -55,6 +55,11 @@ from ibm_storage_flocker_driver.lib.constants import (
     CONF_PARAM_HOSTNAME,
 )
 
+try:
+    unicode        # Python2
+except NameError:
+    unicode = str  # Python 3
+
 LOG = config_logger(logging.getLogger(__name__))
 PREFIX = 'API'  # log prefix
 
