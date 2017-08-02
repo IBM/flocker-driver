@@ -42,6 +42,11 @@ from ibm_storage_flocker_driver.lib.constants import (
 )
 from ibm_storage_flocker_driver.lib import messages
 
+try:
+    unicode        # Python2
+except NameError:
+    unicode = str  # Python 3
+
 # Constants for unit testing
 UUID1_STR = '737d4ea0-28bf-11e6-b12e-68f7288f1809'
 UUID1 = UUID(UUID1_STR)
