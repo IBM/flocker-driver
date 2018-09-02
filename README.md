@@ -36,11 +36,11 @@ See the instructions on how to install Flocker on your nodes at [Flocker](https:
 The IBM Storage plug-in for Flocker communicates with the IBM storage systems through IBM Spectrum Control Base Edition 3.2.0 or later.
 See [IBM Knowledge Center](http://www.ibm.com/support/knowledgecenter/STWMS9/landing/IBM_Spectrum_Control_Base_Edition_welcome_page.html) for instructions on how download, install and configure Spectrum Control Base Edition software.
 
-After IBM Spectrum Control Base Edition is installed, do the following :
+After IBM Spectrum Control Base Edition is installed, do the following:
 * Log into Spectrum Control Base Edition server at https://SCBE_IP_address:8440.
-* Add a Flocker interface. Note: The Flocker interface username and the password will be used later, when creating and editing the agent.yml file.
+* Add a Flocker interface. Note: The Flocker interface username and the password will be used later, when creating and editing the `agent.yml` file.
 * Add the IBM storage systems to be used with the Flocker plug-in.
-* Create storage service(s) with required storage capacities and capabilities. This service(s) will be avilable as a Flocker profile on the Flocker nodes.
+* Create storage service(s) with required storage capacities and capabilities. This service(s) will be available as a Flocker profile on the Flocker nodes.
 * Delegate at least one storage service to the Flocker interface.
 
 **3. Configuring storage connectivity and multipathing**
@@ -78,7 +78,7 @@ The plug-in supports FC or iSCSI connectivity to the storage systems.
     multipath -ll  # Make sure no error appear.
    ```
 
-- Verify that the hostname of the Flocker node or the hostname configured in the agent.yml file is defined on the relevant storage systems with the valid WWPNs or IQN of the node.
+- Verify that the hostname of the Flocker node or the hostname configured in the `agent.yml` file is defined on the relevant storage systems with the valid WWPNs or IQN of the node.
 
 - For iSCSI - Discover and login to the iSCSI targets of the relevant storage systems:
     * Discover iSCSI targets of the storage systems portal on the host
@@ -100,7 +100,7 @@ Install IBM Storage Plug-in for Flocker on each node of the Flocker cluster.
 ```
 
 ## Usage instructions
-Create and edit the agent.yml file in /etc/flocker directory as follows:
+Create and edit the `agent.yml` file in `/etc/flocker` directory as follows:
 ```bash
 version: 1
 control-service:
@@ -119,8 +119,8 @@ dataset:
 Replace the following values, according your environment:
 - **FLOCKER_CONTROL_NODE** = hostname or IP of the Flocker control node
 - **SCBE_IP** = SCBE server IP or FQDN 
-- **SCBE_PORT** = SCBE server port. This setting is optional (default port is 8440).
-- **Boolean** = True verifies SCB SSL certificate or False ignores the certificate (default is True)
+- **SCBE_PORT** = SCBE server port. This setting is optional (default port is `8440`).
+- **Boolean** = True verifies SCB SSL certificate or False ignores the certificate (default is `True`)
 - **USERNAME** = user name defined for SCBE Flocker interface
 - **PASSWORD** = password defined for SCBE Flocker interface
 - **SERVICE** = SCBE storage service to be used by default as the Flocker default profile
@@ -132,7 +132,7 @@ Replace the following values, according your environment:
 ```bash
     docker volume create --driver=flocker --name volume_1 --opt profile=gold --opt size=10g
 ```
-* Launch container "container_1" with volume "volume_1" to be mounted in the /data path of the Docker container, using Docker image "ubuntu" by running the following command. If the specified volume does not exist, the Flocker driver creates it on the SCBE service defined in the agent.yml file, as "default_service".
+* Launch container "container_1" with volume "volume_1" to be mounted in the `/data` path of the Docker container, using Docker image "ubuntu" by running the following command. If the specified volume does not exist, the Flocker driver creates it on the SCBE service defined in the `agent.yml` file, as "default_service".
 ```bash
     docker run --volume-driver flocker -v volume_1:/data --name container_1 -it ubuntu bash
 ```
